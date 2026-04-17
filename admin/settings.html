@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Settings</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #1e1e2f;
+  color: white;
+  text-align: center;
+}
+
+.container {
+  padding: 20px;
+}
+
+input {
+  padding: 8px;
+  margin: 5px;
+}
+
+button {
+  padding: 8px 12px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.item {
+  background: #2c2c3e;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>🍔 Menu Management</h2>
+
+<input id="name" placeholder="Item Name">
+<input id="price" type="number" placeholder="Price">
+<input id="discount" type="number" placeholder="Discount %">
+
+<button onclick="addItem()">Add Item</button>
+
+<div id="menuList"></div>
+
+<hr>
+
+<h2>🪑 Table Management</h2>
+
+<input id="tableNo" type="number" placeholder="Table No">
+<button onclick="toggleTable()">Enable/Disable</button>
+
+<div id="tableList"></div>
+
+</div>
+
+<script>
+
+// 🔥 Load data
+let menu = JSON.parse(localStorage.getItem("menu")) || [];
+let tables = JSON.parse(localStorage.getItem("tables")) || [];
+
+// 🍔 Add item
+function addItem() {
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
+  const discount = document.getElementById("discount").value || 0;
+
+  const item = {
+    id: Date.now(),
+    name,
+    price,
+    discount
+  };
+
+  menu.push(item);
+  saveMenu();
+}
+
+// 🗑 Delete
+function deleteItem(id) {
+  menu = menu.filter(item => item.id !== id);
+  saveMenu();
+}
+
+// ✏️ Edit
+function editItem(id) {
+  const newPrice = prompt("Enter new price:");
+  menu = menu.map(item => {
+    if (item.id === id) item.price = newPrice;
+    return item;
+  });
+  saveMenu();
+}
+
+// 💾 Save Menu
+function saveMenu() {
+  localStorage.setItem("menu", JSON.stringify(menu));
+  renderMenu();
+}
+
+// 🎨 Render Menu
+function renderMenu() {
+  const div = document.getElementById("menuList");
+  div.innerHTML = "";
+
+  menu.forEach(item => {
+    div.innerHTML += `
+      <div class="item">
+        ${item.name} - ₹${item.price} (${item.discount}% OFF)
+        <br>
+        <button onclick="editItem(${item.id})">Edit</button>
+        <button onclick="deleteItem(${item.id})">Delete</button>
+      </div>
+    `;
+  });
+}
+
+// 🪑 Table Toggle
+function toggleTable() {
+  const tableNo = document.getElementById("tableNo").value;
+
+  let table = tables.find(t => t.tableNo == tableNo);
+
+  if (table) {
+    table.active = !table.active;
+  } else {
+    tables.push({ tableNo, active: true });
+  }
+
+  localStorage.setItem("tables", JSON.stringify(tables));
+  renderTables();
+}
+
+// 🎨 Render Tables
+function renderTables() {
+  const div = document.getElementById("tableList");
+  div.innerHTML = "";
+
+  tables.forEach(t => {
+    div.innerHTML += `
+      <div class="item">
+        Table ${t.tableNo} → ${t.active ? "🟢 Enabled" : "🔴 Disabled"}
+      </div>
+    `;
+  });
+}
+
+// 🚀 Init
+renderMenu();
+renderTables();
+
+</script>
+
+</body>
+</html>

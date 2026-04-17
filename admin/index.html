@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
+      color: #fff;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      opacity: 0.7;
+      font-size: 14px;
+    }
+
+    /* Dashboard */
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+      padding: 20px;
+    }
+
+    /* Card */
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border-radius: 15px;
+      padding: 25px;
+      text-align: center;
+      transition: 0.3s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .card h2 {
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .card p {
+      font-size: 14px;
+      opacity: 0.7;
+      margin-bottom: 20px;
+    }
+
+    /* Buttons */
+    .card button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(45deg, #ff7b54, #ff4d6d);
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .card button:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+
+    .card button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+
+    /* Mobile */
+    @media (max-width: 500px) {
+      .header h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>☕ Cafe Admin Panel</h1>
+    <p>Manage orders like a pro</p>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard">
+
+    <div class="card">
+      <h2>📦 Orders</h2>
+      <p>View & manage live orders</p>
+      <button onclick="goToOrders()">Open Orders</button>
+    </div>
+
+    <div class="card">
+      <h2>📊 Analytics</h2>
+      <p>Track your cafe performance</p>
+      <button onclick="goToAnalytics()">Open Analytics</button>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ Settings</h2>
+      <p>Manage menu & cafe info</p>
+      <button onclick="goToSettings()">Open Settings</button>
+    </div>
+
+  </div>
+
+  <script>
+    function goToOrders() {
+      window.location.href = "orders.html";
+    }
+    function goToAnalytics() {
+  window.location.href = "analytics.html";
+}
+    // function goToAnalytics() {
+    //   alert("Analytics feature coming soon 🚀");
+    // }
+    
+  </script>
+
+</body>
+</html>

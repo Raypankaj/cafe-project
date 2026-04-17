@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brew Haven Cafe</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* 🎯 Same theme as admin */
+    body {
+      overflow: hidden;
+      color: white;
+      background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
+    }
+
+    /* 🎥 Background Video */
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+      opacity: 0.6; /* blend with theme */
+    }
+
+    /* 🌑 Overlay (theme matching) */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30,30,47,0.7);
+      z-index: -1;
+    }
+
+    /* 📦 Main content */
+    .container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      opacity: 0.8;
+      margin-bottom: 20px;
+    }
+
+    .table {
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+
+    /* 🔘 Button */
+    button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(45deg, #ff7b54, #ff4d6d);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    /* 📱 Mobile fix */
+    @media (max-width: 500px) {
+      h1 {
+        font-size: 24px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- 🎥 Video -->
+  <video autoplay muted loop id="bg-video">
+    <source src="assets/images/cafe.mp4" type="video/mp4">
+  </video>
+
+  <!-- 🌑 Overlay -->
+  <div class="overlay"></div>
+
+  <!-- 📦 Content -->
+  <div class="container">
+    <h1>☕ Brew Haven</h1>
+    <p>Experience the taste of perfection</p>
+
+    <div class="table">
+      Table No: <span id="tableNo">#1</span>
+    </div>
+
+    <button onclick="goToMenu()">View Menu</button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const table = params.get("table") || 1;
+
+    document.getElementById("tableNo").innerText = "#" + table;
+
+    function goToMenu() {
+      window.location.href = `menu.html?table=${table}`;
+    }
+  </script>
+
+</body>
+</html>

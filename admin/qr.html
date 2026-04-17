@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Generator</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      width: 320px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 15px;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      margin: 5px;
+      background: linear-gradient(45deg, #ff7b54, #ff4d6d);
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    #qrBox {
+      margin-top: 20px;
+    }
+
+    #qrBox img {
+      margin-top: 10px;
+      border-radius: 10px;
+      background: white;
+      padding: 5px;
+    }
+
+    .back-btn {
+      margin-top: 15px;
+      display: inline-block;
+      cursor: pointer;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>📱 QR Generator</h1>
+
+    <!-- Input -->
+    <input type="number" id="tableNumber" placeholder="Enter Table Number" />
+
+    <!-- Buttons -->
+    <button onclick="generateQR()">Generate</button>
+    <button onclick="downloadQR()">Download</button>
+
+    <!-- Output -->
+    <div id="qrBox"></div>
+
+    <div class="back-btn" onclick="goBack()">⬅ Back</div>
+  </div>
+
+  <script>
+    const url = `http://192.168.1.5:5500/index.html?table=${table}`;
+    function generateQR() {
+  const table = document.getElementById("tableNumber").value;
+
+  if (!table) {
+    alert("Enter table number");
+    return;
+  }
+
+  // 🔥 Auto use current host
+  const baseURL = window.location.origin;
+
+  const url = `${baseURL}/index.html?table=${table}`;
+  const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${url}`;
+
+  document.getElementById("qrBox").innerHTML = `
+    <p>Table #${table}</p>
+    <img id="qrImage" src="${qrURL}" />
+    <p style="font-size:12px;">${url}</p>
+  `;
+}
+
+    function downloadQR() {
+      const img = document.querySelector("#qrBox img");
+
+      if (!img) {
+        alert("Pehle QR generate karo");
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.href = img.src;
+      link.download = "qr-code.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function goBack() {
+      window.location.href = "index.html";
+    }
+  </script>
+
+</body>
+</html>

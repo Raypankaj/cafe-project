@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Tracking</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
+      color: white;
+    }
+
+    .order-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .timer-box {
+      margin-top: 20px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      padding: 25px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+      width: 280px;
+    }
+
+    #timer {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    #statusText {
+      opacity: 0.8;
+      font-size: 14px;
+    }
+
+    /* 🔥 Action Box */
+    #actionBox {
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #C89B3C;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    img {
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="order-container">
+    <h1>🎉 Order Confirmed</h1>
+    <p id="orderId"></p>
+
+    <div class="timer-box">
+      <h2 id="timer">Waiting...</h2>
+      <p id="statusText">Waiting for confirmation...</p>
+    </div>
+
+    <!-- 🔥 Dynamic area -->
+    <div id="actionBox"></div>
+
+  </div>
+
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+  <script>
+    const socket = io("http://localhost:5000");
+
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("id");
+
+    document.getElementById("orderId").innerText = "Order ID: #" + orderId;
+
+    let timerInterval;
+
+    function startTimer(minutes) {
+      let time = minutes * 60;
+
+      const timerEl = document.getElementById("timer");
+
+      clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        let min = Math.floor(time / 60);
+        let sec = time % 60;
+
+        sec = sec < 10 ? "0" + sec : sec;
+
+        timerEl.innerText = `${min}:${sec}`;
+
+        time--;
+
+        if (time < 0) {
+          clearInterval(timerInterval);
+          timerEl.innerText = "Order Ready ✅";
+        }
+      }, 1000);
+    }
+
+    // 🔥 Accepted
+    socket.on("orderAccepted", (data) => {
+      if (data.id == orderId) {
+        document.getElementById("statusText").innerText = "Preparing your order...";
+        startTimer(data.time);
+      }
+    });
+
+    // 🟢 Done → show confirm button
+    socket.on("orderDone", (data) => {
+      if (data.id == orderId) {
+
+        clearInterval(timerInterval);
+
+        document.getElementById("timer").innerText = "Order Ready ✅";
+        document.getElementById("statusText").innerText = "Please collect your order 🍽️";
+
+        document.getElementById("actionBox").innerHTML = `
+          <button onclick="confirmReceived()">Confirm Received</button>
+        `;
+      }
+    });
+
+    // ✅ Customer confirms
+    function confirmReceived() {
+      fetch(`http://localhost:5000/api/orders/${orderId}/collected`, {
+        method: "PUT"
+      })
+      .then(() => {
+        showPayment();
+      });
+    }
+
+    // 💳 Show QR
+    function showPayment() {
+      document.getElementById("actionBox").innerHTML = `
+        <h3>Scan & Pay</h3>
+        <img src="assets/WhatsApp Image 2026-04-16 at 13.27.45.jpeg" width="200"/>
+        <p>UPI: yourupi@okaxis</p>
+        <button onclick="finishOrder()">Done Payment</button>
+      `;
+    }
+
+    function finishOrder() {
+      alert("Thanks for visiting ☕");
+      window.location.href = "index.html";
+    }
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
+      color: white;
+      padding: 15px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .item {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      padding: 15px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .item button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(45deg, #ff7b54, #ff4d6d);
+      color: white;
+      cursor: pointer;
+    }
+
+    .cart-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+    }
+
+    .cart-btn button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      background: linear-gradient(45deg, #ff7b54, #ff4d6d);
+      border: none;
+      color: white;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>☕ Brew Haven Menu</h1>
+    <p id="tableInfo"></p>
+  </div>
+
+  <div class="menu" id="menu"></div>
+
+  <div class="cart-btn">
+    <button onclick="goToCart()">Go to Cart 🛒</button>
+  </div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const table = params.get("table") || 1;
+
+document.getElementById("tableInfo").innerText = "Table #" + table;
+
+function goToCart() {
+  window.location.href = `cart.html?table=${table}`;
+}
+
+// 🔥 LOAD MENU FROM SETTINGS
+let menu = JSON.parse(localStorage.getItem("menu")) || [];
+
+const menuDiv = document.getElementById("menu");
+
+function renderMenu() {
+  menuDiv.innerHTML = "";
+
+  if (menu.length === 0) {
+    menuDiv.innerHTML = "<p>No items available 😢</p>";
+    return;
+  }
+
+  menu.forEach(item => {
+    const finalPrice = item.price - (item.price * item.discount / 100);
+
+    const div = document.createElement("div");
+    div.classList.add("item");
+
+    div.innerHTML = `
+      <h3>${item.name}</h3>
+      ${
+        item.discount > 0
+        ? `<p><del>₹${item.price}</del> ₹${finalPrice}</p>`
+        : `<p>₹${item.price}</p>`
+      }
+    `;
+
+    const btn = document.createElement("button");
+    btn.innerText = "Add";
+    btn.onclick = () => addToCart(item.name, finalPrice);
+
+    div.appendChild(btn);
+
+    menuDiv.appendChild(div);
+  });
+}
+
+renderMenu();
+
+// 🛒 CART
+function addToCart(name, price) {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  cart.push({ name, price });
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+
+  showToast(name + " added ✅");
+}
+
+// 🔔 Toast
+function showToast(msg) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerText = msg;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.remove(), 1500);
+}
+const tables = JSON.parse(localStorage.getItem("tables")) || [];
+const tableData = tables.find(t => t.tableNo == table);
+
+if (tableData && tableData.active === false) {
+  document.body.innerHTML = `
+    <div style="text-align:center; margin-top:50px;">
+      <h2>🚫 Table Disabled</h2>
+      <p>This table is currently not accepting orders.</p>
+    </div>
+  `;
+}
+
+</script>
+
+</body>
+</html>
