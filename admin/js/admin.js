@@ -1,9 +1,9 @@
 // 🔌 Connect socket
-const socket = io("http://localhost:5000");
+const socket = io("https://brew-haven-backend.onrender.com");
 
 // 📦 Load all orders
 function loadOrders() {
-  fetch("http://localhost:5000/api/orders")
+  fetch("https://brew-haven-backend.onrender.com")
     .then(res => res.json())
     .then(data => {
       const container = document.getElementById("orders");
@@ -57,7 +57,7 @@ function acceptOrder(id, btn) {
   btn.innerText = "Processing...";
   btn.disabled = true;
 
-  fetch(`http://localhost:5000/api/orders/${id}/accept`, {
+  fetch(`https://brew-haven-backend.onrender.com/api/orders/${id}/accept`, {
   method: "PUT",
     headers: {
       "Content-Type": "application/json"
@@ -72,7 +72,7 @@ function markDone(id, btn) {
   btn.innerText = "Updating...";
   btn.disabled = true;
 
-  fetch(`http://localhost:5000/api/orders/${id}/done`, {
+  fetch(`https://brew-haven-backend.onrender.com/api/orders/${id}/done`, {
   method: "PUT"
   })
   .then(() => loadOrders());

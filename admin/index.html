@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
@@ -19,7 +20,6 @@
       color: #fff;
     }
 
-    /* Header */
     .header {
       text-align: center;
       padding: 30px 20px;
@@ -35,7 +35,6 @@
       font-size: 14px;
     }
 
-    /* Dashboard */
     .dashboard {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -43,7 +42,6 @@
       padding: 20px;
     }
 
-    /* Card */
     .card {
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(12px);
@@ -70,7 +68,6 @@
       margin-bottom: 20px;
     }
 
-    /* Buttons */
     .card button {
       padding: 10px 20px;
       border: none;
@@ -87,12 +84,6 @@
       opacity: 0.9;
     }
 
-    .card button:disabled {
-      background: gray;
-      cursor: not-allowed;
-    }
-
-    /* Mobile */
     @media (max-width: 500px) {
       .header h1 {
         font-size: 22px;
@@ -103,13 +94,11 @@
 
 <body>
 
-  <!-- Header -->
   <div class="header">
     <h1>☕ Cafe Admin Panel</h1>
     <p>Manage orders like a pro</p>
   </div>
 
-  <!-- Dashboard -->
   <div class="dashboard">
 
     <div class="card">
@@ -136,13 +125,14 @@
     function goToOrders() {
       window.location.href = "orders.html";
     }
+
     function goToAnalytics() {
-  window.location.href = "analytics.html";
-}
-    // function goToAnalytics() {
-    //   alert("Analytics feature coming soon 🚀");
-    // }
-    
+      window.location.href = "analytics.html";
+    }
+
+    function goToSettings() {
+      window.location.href = "settings.html";
+    }
   </script>
 
 </body>
