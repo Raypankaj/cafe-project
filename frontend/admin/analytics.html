@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analytics</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body {
+  background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
+  color: white;
+  font-family: Arial;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 15px;
+}
+
+.card {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.chartBox {
+  margin-top: 20px;
+  background: rgba(255,255,255,0.08);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+button {
+  margin-top: 20px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #ff7b54, #ff4d6d);
+  color: white;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📊 Cafe Analytics</h1>
+
+<div class="container">
+  <div class="card">
+    <h3>Today</h3>
+    <p id="today">₹0</p>
+  </div>
+
+  <div class="card">
+    <h3>This Month</h3>
+    <p id="month">₹0</p>
+  </div>
+
+  <div class="card">
+    <h3>This Year</h3>
+    <p id="year">₹0</p>
+  </div>
+
+  <div class="card">
+    <h3>🔥 Top Item</h3>
+    <p id="topItem">-</p>
+  </div>
+
+  <div class="card">
+    <h3>⏱️ Peak Hour</h3>
+    <p id="peakHour">-</p>
+  </div>
+</div>
+
+<div class="chartBox">
+  <h3>📈 Last 7 Days Sales</h3>
+  <canvas id="salesChart"></canvas>
+</div>
+
+<div class="chartBox">
+  <h3>🪑 Table-wise Business</h3>
+  <div id="tableData"></div>
+</div>
+
+<div style="text-align:center;">
+  <button onclick="downloadReport()">Download Report 📄</button>
+</div>
+
+<script>
+
+// 🔥 PRODUCTION BASE URL (change if backend URL changes)
+const BASE_URL = "https://brew-haven-backend-pgyl.onrender.com";
+
+let globalData = [];
+let chartInstance = null; // ⚠️ prevent duplicate charts
+
+async function loadAnalytics() {
+  try {
+    const res = await fetch(BASE_URL + "/api/orders");
+
+    if (!res.ok) throw new Error("API not responding");
+
+    const data = await res.json();
+    globalData = data;
+
+    let todayTotal = 0;
+    let monthTotal = 0;
+    let yearTotal = 0;
+
+    let tableMap = {};
+    let itemMap = {};
+    let hourMap = {};
+    let dailyMap = {};
+
+    const now = new Date();
+
+    data.forEach(order => {
+
+      const date = new Date(order.createdAt);
+
+      if (date.toDateString() === now.toDateString()) {
+        todayTotal += order.total;
+      }
+
+      if (date.getMonth() === now.getMonth() &&
+          date.getFullYear() === now.getFullYear()) {
+        monthTotal += order.total;
+      }
+
+      if (date.getFullYear() === now.getFullYear()) {
+        yearTotal += order.total;
+      }
+
+      // 🪑 Table
+      tableMap[order.table] = (tableMap[order.table] || 0) + order.total;
+
+      // 🔥 Items
+      (order.items || []).forEach(item => {
+        itemMap[item.name] = (itemMap[item.name] || 0) + 1;
+      });
+
+      // ⏱️ Hour
+      let hour = date.getHours();
+      hourMap[hour] = (hourMap[hour] || 0) + 1;
+
+      // 📈 Daily
+      let day = date.toLocaleDateString();
+      dailyMap[day] = (dailyMap[day] || 0) + order.total;
+    });
+
+    // 💰 Update UI
+    document.getElementById("today").innerText = "₹" + todayTotal;
+    document.getElementById("month").innerText = "₹" + monthTotal;
+    document.getElementById("year").innerText = "₹" + yearTotal;
+
+    // 🔥 Top Item
+    let topItem = Object.keys(itemMap).length
+      ? Object.keys(itemMap).reduce((a,b)=> itemMap[a]>itemMap[b]?a:b)
+      : "-";
+
+    document.getElementById("topItem").innerText = topItem;
+
+    // ⏱️ Peak Hour
+    let peak = Object.keys(hourMap).length
+      ? Object.keys(hourMap).reduce((a,b)=> hourMap[a]>hourMap[b]?a:b)
+      : "-";
+
+    document.getElementById("peakHour").innerText = peak !== "-" ? peak + ":00" : "-";
+
+    // 🪑 Table UI
+    const tableDiv = document.getElementById("tableData");
+    tableDiv.innerHTML = "";
+
+    for (let table in tableMap) {
+      tableDiv.innerHTML += `
+        <div class="card">
+          Table ${table} → ₹${tableMap[table]}
+        </div>
+      `;
+    }
+
+    // 📈 Chart Fix (destroy old)
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    let labels = Object.keys(dailyMap).slice(-7);
+    let values = Object.values(dailyMap).slice(-7);
+
+    chartInstance = new Chart(document.getElementById("salesChart"), {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Sales",
+          data: values,
+          borderWidth: 2
+        }]
+      }
+    });
+
+  } catch (err) {
+    console.error("Analytics Error:", err);
+    alert("⚠️ Failed to load analytics. Check backend.");
+  }
+}
+
+// 📄 PDF
+function downloadReport() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.text("Cafe Report", 20, 20);
+
+  let y = 40;
+
+  globalData.forEach(order => {
+    doc.text(`Table ${order.table} - ₹${order.total}`, 20, y);
+    y += 10;
+  });
+
+  doc.save("report.pdf");
+}
+
+// 🚀 Load
+loadAnalytics();
+
+</script>
+
+</body>
+</html>

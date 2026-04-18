@@ -54,7 +54,7 @@ app.use((req, res) => {
 });
 
 // ❌ Global Error Handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, next) => {https://brew-haven-backend-pgy1.onrender.com
   console.error("Server Error:", err.message);
   res.status(500).json({ message: "Internal Server Error" });
 });
