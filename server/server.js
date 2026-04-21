@@ -65,3 +65,17 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🔥 Server running on http://localhost:${PORT}`);
 });
+
+app.post("/save-menu", async (req, res) => {
+  try {
+    await Menu.deleteMany();
+    await Menu.insertMany(req.body);
+
+    // 🔥 REAL-TIME BROADCAST
+    req.app.locals.io.emit("menuUpdated");
+
+    res.json({ message: "Menu saved" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});

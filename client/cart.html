@@ -106,6 +106,9 @@
   </div>
 
   <script>
+
+    const API = "https://brew-haven-backend-pgyl.onrender.com";
+
     // 👉 Table from URL
     const params = new URLSearchParams(window.location.search);
     const table = params.get("table") || 1;
@@ -150,7 +153,16 @@
       renderCart();
     }
 
+    // 🔥 FINAL FIXED ORDER FUNCTION
     function placeOrder() {
+      const tables = JSON.parse(localStorage.getItem("tables")) || [];
+      const tableData = tables.find(t => t.tableNo == table);
+
+      if (tableData && tableData.active === false) {
+        alert("❌ This table is disabled");
+        return;
+      }
+
       if (cart.length === 0) {
         alert("Cart is empty!");
         return;
@@ -160,7 +172,7 @@
       btn.innerText = "Placing...";
       btn.disabled = true;
 
-      fetch("https://brew-haven-backend.onrender.com", {
+      fetch(`${API}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -168,58 +180,28 @@
         body: JSON.stringify({
           table: table,
           items: cart,
-          total: total
+          total: total,
+          status: "pending"
         })
       })
-      .then(res => res.json())
-      .then(data => {
-        localStorage.removeItem("cart");
-        window.location.href = `order.html?id=${data._id}`; // ✅ FIX
-      })
-      .catch(err => {
-        alert("Error placing order");
-        console.log(err);
-      });
+        .then(res => res.json())
+        .then(data => {
+          console.log("Order success:", data);
+
+          localStorage.removeItem("cart");
+
+          window.location.href = `order.html?id=${data._id}`;
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Order failed!");
+          btn.innerText = "Place Order";
+          btn.disabled = false;
+        });
     }
 
     renderCart();
-    function placeOrder() {
-  const tables = JSON.parse(localStorage.getItem("tables")) || [];
 
-  const tableData = tables.find(t => t.tableNo == table);
-
-  // ❌ Block if disabled
-  if (tableData && tableData.active === false) {
-    alert("❌ This table is currently disabled. Please contact staff.");
-    return;
-  }
-
-  if (cart.length === 0) {
-    alert("Cart is empty!");
-    return;
-  }
-
-  fetch("http://localhost:5000/api/orders", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      table: table,
-      items: cart,
-      total: total
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    localStorage.removeItem("cart");
-    window.location.href = `order.html?id=${data._id}`;
-  })
-  .catch(err => {
-    alert("Error placing order");
-    console.log(err);
-  });
-}
   </script>
 
 </body>

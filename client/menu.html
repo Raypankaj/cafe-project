@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Menu</title>
+  <title>Brew Haven Menu</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 
@@ -32,6 +32,11 @@
       padding: 15px;
       border-radius: 12px;
       text-align: center;
+      transition: 0.3s;
+    }
+
+    .item:hover {
+      transform: scale(1.05);
     }
 
     .item button {
@@ -58,6 +63,7 @@
       background: linear-gradient(45deg, #ff7b54, #ff4d6d);
       border: none;
       color: white;
+      font-size: 16px;
     }
 
     .toast {
@@ -69,7 +75,6 @@
       padding: 10px;
       border-radius: 8px;
     }
-
   </style>
 </head>
 
@@ -88,20 +93,34 @@
 
 <script>
 
+const API = "https://brew-haven-backend-pgyl.onrender.com";
+
+// 👉 Table
 const params = new URLSearchParams(window.location.search);
 const table = params.get("table") || 1;
-
 document.getElementById("tableInfo").innerText = "Table #" + table;
 
 function goToCart() {
   window.location.href = `cart.html?table=${table}`;
 }
 
-// 🔥 LOAD MENU FROM SETTINGS
-let menu = JSON.parse(localStorage.getItem("menu")) || [];
-
+// 🔥 MENU FROM DB
+let menu = [];
 const menuDiv = document.getElementById("menu");
 
+// 🚀 Load Menu
+async function loadMenu() {
+  try {
+    const res = await fetch(`${API}/get-menu`);
+    menu = await res.json();
+    renderMenu();
+  } catch (err) {
+    console.error(err);
+    menuDiv.innerHTML = "<p>❌ Failed to load menu</p>";
+  }
+}
+
+// 🎨 Render Menu
 function renderMenu() {
   menuDiv.innerHTML = "";
 
@@ -130,14 +149,11 @@ function renderMenu() {
     btn.onclick = () => addToCart(item.name, finalPrice);
 
     div.appendChild(btn);
-
     menuDiv.appendChild(div);
   });
 }
 
-renderMenu();
-
-// 🛒 CART
+// 🛒 Add to cart (localStorage allowed)
 function addToCart(name, price) {
   let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
@@ -158,6 +174,8 @@ function showToast(msg) {
 
   setTimeout(() => toast.remove(), 1500);
 }
+
+// 🔒 Table check
 const tables = JSON.parse(localStorage.getItem("tables")) || [];
 const tableData = tables.find(t => t.tableNo == table);
 
@@ -169,6 +187,9 @@ if (tableData && tableData.active === false) {
     </div>
   `;
 }
+
+// 🚀 INIT
+loadMenu();
 
 </script>
 
