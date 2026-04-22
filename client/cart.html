@@ -80,6 +80,11 @@
       cursor: pointer;
     }
 
+    .cart-btn button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
     .empty {
       text-align: center;
       margin-top: 50px;
@@ -89,16 +94,15 @@
 </head>
 
 <body>
-
   <div class="header">
-    <h1>🛒 Your Cart</h1>
+    <h1>Your Cart</h1>
     <p id="tableInfo"></p>
   </div>
 
   <div id="cartItems"></div>
 
   <div class="total">
-    <h3 id="totalAmount">Total: ₹0</h3>
+    <h3 id="totalAmount">Total: Rs 0</h3>
   </div>
 
   <div class="cart-btn">
@@ -106,15 +110,18 @@
   </div>
 
   <script>
-    // 👉 Table from URL
+    const ORDER_API_URL = "https://brew-haven-backend.onrender.com/api/orders";
+
     const params = new URLSearchParams(window.location.search);
     const table = params.get("table") || 1;
-    document.getElementById("tableInfo").innerText = "Table #" + table;
+    const tableInfo = document.getElementById("tableInfo");
+    const cartDiv = document.getElementById("cartItems");
+    const totalAmount = document.getElementById("totalAmount");
+    const orderBtn = document.getElementById("orderBtn");
 
-    // 👉 Cart
+    tableInfo.innerText = "Table #" + table;
+
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    let cartDiv = document.getElementById("cartItems");
     let total = 0;
 
     function renderCart() {
@@ -122,26 +129,27 @@
       total = 0;
 
       if (cart.length === 0) {
-        cartDiv.innerHTML = "<p class='empty'>Your cart is empty 😴</p>";
-        document.getElementById("totalAmount").innerText = "";
+        cartDiv.innerHTML = "<p class='empty'>Your cart is empty</p>";
+        totalAmount.innerText = "Total: Rs 0";
         return;
       }
 
       cart.forEach((item, index) => {
-        total += item.price;
+        const itemPrice = Number(item.price) || 0;
+        total += itemPrice;
 
         cartDiv.innerHTML += `
           <div class="item">
             <div>
               <h3>${item.name}</h3>
-              <p>₹${item.price}</p>
+              <p>Rs ${itemPrice}</p>
             </div>
             <button onclick="removeItem(${index})">Remove</button>
           </div>
         `;
       });
 
-      document.getElementById("totalAmount").innerText = "Total: ₹" + total;
+      totalAmount.innerText = "Total: Rs " + total;
     }
 
     function removeItem(index) {
@@ -150,77 +158,53 @@
       renderCart();
     }
 
-    function placeOrder() {
+    async function placeOrder() {
+      const tables = JSON.parse(localStorage.getItem("tables")) || [];
+      const tableData = tables.find((t) => t.tableNo == table);
+
+      if (tableData && tableData.active === false) {
+        alert("This table is currently disabled. Please contact staff.");
+        return;
+      }
+
       if (cart.length === 0) {
         alert("Cart is empty!");
         return;
       }
 
-      const btn = document.getElementById("orderBtn");
-      btn.innerText = "Placing...";
-      btn.disabled = true;
+      orderBtn.innerText = "Placing...";
+      orderBtn.disabled = true;
 
-      fetch("https://brew-haven-backend.onrender.com", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          table: table,
-          items: cart,
-          total: total
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
+      try {
+        const response = await fetch(ORDER_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            table: table,
+            items: cart,
+            total: total
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to place order");
+        }
+
         localStorage.removeItem("cart");
-        window.location.href = `order.html?id=${data._id}`; // ✅ FIX
-      })
-      .catch(err => {
-        alert("Error placing order");
-        console.log(err);
-      });
+        window.location.href = `order.html?id=${data._id}`;
+      } catch (error) {
+        alert(error.message || "Error placing order");
+        console.log(error);
+        orderBtn.innerText = "Place Order";
+        orderBtn.disabled = false;
+      }
     }
 
     renderCart();
-    function placeOrder() {
-  const tables = JSON.parse(localStorage.getItem("tables")) || [];
-
-  const tableData = tables.find(t => t.tableNo == table);
-
-  // ❌ Block if disabled
-  if (tableData && tableData.active === false) {
-    alert("❌ This table is currently disabled. Please contact staff.");
-    return;
-  }
-
-  if (cart.length === 0) {
-    alert("Cart is empty!");
-    return;
-  }
-
-  fetch("http://localhost:5000/api/orders", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      table: table,
-      items: cart,
-      total: total
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    localStorage.removeItem("cart");
-    window.location.href = `order.html?id=${data._id}`;
-  })
-  .catch(err => {
-    alert("Error placing order");
-    console.log(err);
-  });
-}
   </script>
-
 </body>
 </html>
