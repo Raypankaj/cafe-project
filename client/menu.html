@@ -118,7 +118,7 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const table = params.get("table") || "1";
-    const cartKey = `cart_table_${table}`;
+    const cartKey = "cart";
 
     const tableInfo = document.getElementById("tableInfo");
     const menuDiv = document.getElementById("menu");
@@ -172,10 +172,17 @@
       const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
       const price = getDiscountedPrice(item);
 
-      cart.push({
-        name: item.name,
-        price: price
-      });
+      const existingItem = cart.find((cartItem) => cartItem.name === item.name);
+
+      if (existingItem) {
+        existingItem.qty = (existingItem.qty || 1) + 1;
+      } else {
+        cart.push({
+          name: item.name,
+          price: price,
+          qty: 1
+        });
+      }
 
       localStorage.setItem(cartKey, JSON.stringify(cart));
       showToast(item.name + " added");
