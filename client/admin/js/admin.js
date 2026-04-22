@@ -1,28 +1,30 @@
-// 🔌 Connect socket
-const socket = io("https://https://brew-haven-backend-pgyl.onrender.com");
+const BASE_URL = "https://brew-haven-backend-pgyl.onrender.com";
 
-// 📦 Load all orders
+// Connect socket
+const socket = io(BASE_URL);
+
+// Load all orders
 function loadOrders() {
-  fetch("https://brew-haven-backend-pgyl.onrender.com/api/orders")
-    .then(res => res.json())
-    .then(data => {
+  fetch(`${BASE_URL}/api/orders`)
+    .then((res) => res.json())
+    .then((data) => {
       const container = document.getElementById("orders");
       container.innerHTML = "";
 
-      if (data.length === 0) {
-        container.innerHTML = "<p>No orders yet 😴</p>";
+      if (!Array.isArray(data) || data.length === 0) {
+        container.innerHTML = "<p>No orders yet</p>";
         return;
       }
 
-      data.forEach(order => {
+      data.forEach((order) => {
         const div = document.createElement("div");
         div.classList.add("order-card");
 
-        // 🟢 Status badge
         let statusColor = "";
         if (order.status === "new") statusColor = "🟡 New";
         if (order.status === "accepted") statusColor = "🟢 Accepted";
         if (order.status === "done") statusColor = "🔵 Done";
+        if (order.status === "collected") statusColor = "✅ Collected";
 
         div.innerHTML = `
           <h3>Table #${order.table}</h3>
@@ -45,10 +47,10 @@ function loadOrders() {
         container.appendChild(div);
       });
     })
-    .catch(err => console.log(err));
+    .catch((err) => console.log(err));
 }
 
-// ✅ Accept Order
+// Accept Order
 function acceptOrder(id, btn) {
   const time = prompt("Enter preparation time (minutes):");
 
@@ -57,44 +59,71 @@ function acceptOrder(id, btn) {
   btn.innerText = "Processing...";
   btn.disabled = true;
 
-  fetch(`https://brew-haven-backend-pgyl.onrender.com/api/orders/api/orders/${id}/accept`, {
-  method: "PUT",
+  fetch(`${BASE_URL}/api/orders/${id}/accept`, {
+    method: "PUT",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ time })
   })
-  .then(() => loadOrders());
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to accept order");
+      }
+      return res.json();
+    })
+    .then(() => loadOrders())
+    .catch((err) => {
+      console.log(err);
+      btn.innerText = "Accept";
+      btn.disabled = false;
+    });
 }
 
-// 🟢 Mark Order Done
+// Mark Order Done
 function markDone(id, btn) {
   btn.innerText = "Updating...";
   btn.disabled = true;
 
-  fetch(`https://brew-haven-backend-pgyl.onrender.com/api/orders/api/orders/${id}/done`, {
-  method: "PUT"
+  fetch(`${BASE_URL}/api/orders/${id}/done`, {
+    method: "PUT"
   })
-  .then(() => loadOrders());
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to mark order done");
+      }
+      return res.json();
+    })
+    .then(() => loadOrders())
+    .catch((err) => {
+      console.log(err);
+      btn.innerText = "Done";
+      btn.disabled = false;
+    });
 }
 
-// 🔥 Real-time updates
+// Real-time updates
 socket.on("newOrder", () => {
-  showToast("New Order Received 🔥");
+  showToast("New Order Received");
   loadOrders();
 });
 
 socket.on("orderAccepted", () => {
-  showToast("Order Accepted ✅");
+  showToast("Order Accepted");
   loadOrders();
 });
 
 socket.on("orderDone", () => {
-  showToast("Order Completed 🎉");
+  showToast("Order Completed");
   loadOrders();
 });
 
-// 🔔 Toast Notification
+socket.on("orderCollected", () => {
+  showToast("Order Collected");
+  loadOrders();
+});
+
+// Toast Notification
 function showToast(message) {
   const toast = document.createElement("div");
   toast.innerText = message;
@@ -114,5 +143,4 @@ function showToast(message) {
   }, 2000);
 }
 
-// 🚀 Initial load
 window.onload = loadOrders;
