@@ -1,36 +1,34 @@
 const Order = require("../models/Order");
 
-// 📦 Create Order
+// Create Order
 exports.createOrder = async (req, res) => {
   try {
     const { io } = req.app.locals;
-
     const { table, items, total } = req.body;
 
-    // ❗ Validation
-    if (!table || !items || !total) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!table || !Array.isArray(items) || items.length === 0 || Number(total) <= 0) {
+      return res.status(400).json({ message: "Missing or invalid order fields" });
     }
 
     const newOrder = await Order.create({
       table,
       items,
-      total,
+      total: Number(total),
       status: "new"
     });
 
-    // 🔥 Emit new order
-    io.emit("newOrder", newOrder);
+    if (io) {
+      io.emit("newOrder", newOrder);
+    }
 
     res.status(201).json(newOrder);
-
   } catch (error) {
     console.error("Create Order Error:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// 📥 Get Orders
+// Get All Orders
 exports.getOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -41,11 +39,26 @@ exports.getOrders = async (req, res) => {
   }
 };
 
-// ✅ Accept Order
+// Get Single Order
+exports.getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json(order);
+  } catch (error) {
+    console.error("Get Order By Id Error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Accept Order
 exports.acceptOrder = async (req, res) => {
   try {
     const { io } = req.app.locals;
-
     const order = await Order.findById(req.params.id);
 
     if (!order) {
@@ -57,25 +70,24 @@ exports.acceptOrder = async (req, res) => {
 
     await order.save();
 
-    // 🔥 Emit timer start
-    io.emit("orderAccepted", {
-      id: order._id.toString(),
-      time: order.time
-    });
+    if (io) {
+      io.emit("orderAccepted", {
+        id: order._id.toString(),
+        time: order.time
+      });
+    }
 
     res.json(order);
-
   } catch (error) {
     console.error("Accept Order Error:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// 🟢 Mark Done
+// Mark Done
 exports.markDone = async (req, res) => {
   try {
     const { io } = req.app.locals;
-
     const order = await Order.findById(req.params.id);
 
     if (!order) {
@@ -85,33 +97,41 @@ exports.markDone = async (req, res) => {
     order.status = "done";
     await order.save();
 
-    // 🔥 Notify customer
-    io.emit("orderDone", {
-      id: order._id.toString()
-    });
+    if (io) {
+      io.emit("orderDone", {
+        id: order._id.toString()
+      });
+    }
 
     res.json(order);
-
   } catch (error) {
     console.error("Mark Done Error:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Mark Collected
 exports.markCollected = async (req, res) => {
-  const { io } = req.app.locals;
+  try {
+    const { io } = req.app.locals;
+    const order = await Order.findById(req.params.id);
 
-  const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
-  if (!order) {
-    return res.status(404).json({ message: "Order not found" });
+    order.status = "collected";
+    await order.save();
+
+    if (io) {
+      io.emit("orderCollected", {
+        id: order._id.toString()
+      });
+    }
+
+    res.json(order);
+  } catch (error) {
+    console.error("Mark Collected Error:", error.message);
+    res.status(500).json({ message: "Server error" });
   }
-
-  order.status = "collected";
-  await order.save();
-
-  io.emit("orderCollected", {
-    id: order._id.toString()
-  });
-
-  res.json(order);
 };

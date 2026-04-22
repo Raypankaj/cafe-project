@@ -5,14 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Analytics</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 body {
+  margin: 0;
+  min-height: 100vh;
   background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
   color: white;
-  font-family: Arial;
+  font-family: "Poppins", sans-serif;
   padding: 20px;
 }
 
@@ -23,12 +26,12 @@ h1 {
 
 .container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
 }
 
 .card {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
   padding: 20px;
   border-radius: 12px;
@@ -37,207 +40,297 @@ h1 {
 
 .chartBox {
   margin-top: 20px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   padding: 20px;
   border-radius: 12px;
 }
 
+#tableData {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.empty {
+  text-align: center;
+  opacity: 0.8;
+}
+
 button {
   margin-top: 20px;
-  padding: 10px;
+  padding: 10px 16px;
   border: none;
   border-radius: 8px;
   background: linear-gradient(45deg, #ff7b54, #ff4d6d);
   color: white;
   cursor: pointer;
+  font-family: inherit;
 }
 </style>
 </head>
 
 <body>
 
-<h1>📊 Cafe Analytics</h1>
+<h1>Cafe Analytics</h1>
 
 <div class="container">
   <div class="card">
     <h3>Today</h3>
-    <p id="today">₹0</p>
+    <p id="today">Rs 0</p>
   </div>
 
   <div class="card">
     <h3>This Month</h3>
-    <p id="month">₹0</p>
+    <p id="month">Rs 0</p>
   </div>
 
   <div class="card">
     <h3>This Year</h3>
-    <p id="year">₹0</p>
+    <p id="year">Rs 0</p>
   </div>
 
   <div class="card">
-    <h3>🔥 Top Item</h3>
+    <h3>Top Item</h3>
     <p id="topItem">-</p>
   </div>
 
   <div class="card">
-    <h3>⏱️ Peak Hour</h3>
+    <h3>Peak Hour</h3>
     <p id="peakHour">-</p>
   </div>
 </div>
 
 <div class="chartBox">
-  <h3>📈 Last 7 Days Sales</h3>
+  <h3>Last 7 Days Sales</h3>
   <canvas id="salesChart"></canvas>
 </div>
 
 <div class="chartBox">
-  <h3>🪑 Table-wise Business</h3>
+  <h3>Table-wise Business</h3>
   <div id="tableData"></div>
 </div>
 
 <div style="text-align:center;">
-  <button onclick="downloadReport()">Download Report 📄</button>
+  <button onclick="downloadReport()">Download Report</button>
 </div>
 
 <script>
-
-// 🔥 PRODUCTION BASE URL (change if backend URL changes)
-const BASE_URL = "https://brew-haven-backend-pgyl.onrender.com";
+const BASE_URL = "https://brew-haven-backend.onrender.com";
 
 let globalData = [];
-let chartInstance = null; // ⚠️ prevent duplicate charts
+let chartInstance = null;
+
+function formatCurrency(value) {
+  return "Rs " + Math.round(Number(value) || 0);
+}
+
+function formatDayKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatDayLabel(dayKey) {
+  const date = new Date(dayKey + "T00:00:00");
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short"
+  });
+}
+
+function renderTableData(tableMap) {
+  const tableDiv = document.getElementById("tableData");
+  tableDiv.innerHTML = "";
+
+  const tableEntries = Object.entries(tableMap).sort((a, b) => Number(a[0]) - Number(b[0]));
+
+  if (tableEntries.length === 0) {
+    tableDiv.innerHTML = "<p class='empty'>No table data available</p>";
+    return;
+  }
+
+  tableEntries.forEach(([tableNo, total]) => {
+    tableDiv.innerHTML += `
+      <div class="card">
+        <h4>Table ${tableNo}</h4>
+        <p>${formatCurrency(total)}</p>
+      </div>
+    `;
+  });
+}
+
+function renderChart(dailyMap) {
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  const sortedDays = Object.keys(dailyMap).sort();
+  const lastSevenDays = sortedDays.slice(-7);
+  const labels = lastSevenDays.map(formatDayLabel);
+  const values = lastSevenDays.map((day) => dailyMap[day]);
+
+  chartInstance = new Chart(document.getElementById("salesChart"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Sales",
+        data: values,
+        borderWidth: 3,
+        borderColor: "#ff7b54",
+        backgroundColor: "rgba(255, 123, 84, 0.18)",
+        fill: true,
+        tension: 0.35
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: {
+            color: "white"
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "white"
+          },
+          grid: {
+            color: "rgba(255,255,255,0.08)"
+          }
+        },
+        y: {
+          ticks: {
+            color: "white"
+          },
+          grid: {
+            color: "rgba(255,255,255,0.08)"
+          }
+        }
+      }
+    }
+  });
+}
 
 async function loadAnalytics() {
   try {
-    const res = await fetch(BASE_URL + "/api/orders");
+    const res = await fetch(`${BASE_URL}/api/orders`);
 
-    if (!res.ok) throw new Error("API not responding");
+    if (!res.ok) {
+      throw new Error("API not responding");
+    }
 
     const data = await res.json();
-    globalData = data;
+    globalData = Array.isArray(data) ? data : [];
 
     let todayTotal = 0;
     let monthTotal = 0;
     let yearTotal = 0;
 
-    let tableMap = {};
-    let itemMap = {};
-    let hourMap = {};
-    let dailyMap = {};
+    const tableMap = {};
+    const itemMap = {};
+    const hourMap = {};
+    const dailyMap = {};
 
     const now = new Date();
 
-    data.forEach(order => {
+    globalData.forEach((order) => {
+      const total = Number(order.total) || 0;
+      const date = order.createdAt ? new Date(order.createdAt) : null;
 
-      const date = new Date(order.createdAt);
-
-      if (date.toDateString() === now.toDateString()) {
-        todayTotal += order.total;
+      if (!date || Number.isNaN(date.getTime())) {
+        return;
       }
 
-      if (date.getMonth() === now.getMonth() &&
-          date.getFullYear() === now.getFullYear()) {
-        monthTotal += order.total;
+      if (date.toDateString() === now.toDateString()) {
+        todayTotal += total;
+      }
+
+      if (date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) {
+        monthTotal += total;
       }
 
       if (date.getFullYear() === now.getFullYear()) {
-        yearTotal += order.total;
+        yearTotal += total;
       }
 
-      // 🪑 Table
-      tableMap[order.table] = (tableMap[order.table] || 0) + order.total;
+      tableMap[order.table] = (tableMap[order.table] || 0) + total;
 
-      // 🔥 Items
-      (order.items || []).forEach(item => {
+      (order.items || []).forEach((item) => {
+        if (!item || !item.name) {
+          return;
+        }
         itemMap[item.name] = (itemMap[item.name] || 0) + 1;
       });
 
-      // ⏱️ Hour
-      let hour = date.getHours();
+      const hour = date.getHours();
       hourMap[hour] = (hourMap[hour] || 0) + 1;
 
-      // 📈 Daily
-      let day = date.toLocaleDateString();
-      dailyMap[day] = (dailyMap[day] || 0) + order.total;
+      const dayKey = formatDayKey(date);
+      dailyMap[dayKey] = (dailyMap[dayKey] || 0) + total;
     });
 
-    // 💰 Update UI
-    document.getElementById("today").innerText = "₹" + todayTotal;
-    document.getElementById("month").innerText = "₹" + monthTotal;
-    document.getElementById("year").innerText = "₹" + yearTotal;
+    document.getElementById("today").innerText = formatCurrency(todayTotal);
+    document.getElementById("month").innerText = formatCurrency(monthTotal);
+    document.getElementById("year").innerText = formatCurrency(yearTotal);
 
-    // 🔥 Top Item
-    let topItem = Object.keys(itemMap).length
-      ? Object.keys(itemMap).reduce((a,b)=> itemMap[a]>itemMap[b]?a:b)
+    const topItem = Object.keys(itemMap).length
+      ? Object.keys(itemMap).reduce((a, b) => itemMap[a] > itemMap[b] ? a : b)
       : "-";
 
     document.getElementById("topItem").innerText = topItem;
 
-    // ⏱️ Peak Hour
-    let peak = Object.keys(hourMap).length
-      ? Object.keys(hourMap).reduce((a,b)=> hourMap[a]>hourMap[b]?a:b)
+    const peakHour = Object.keys(hourMap).length
+      ? Object.keys(hourMap).reduce((a, b) => hourMap[a] > hourMap[b] ? a : b)
       : "-";
 
-    document.getElementById("peakHour").innerText = peak !== "-" ? peak + ":00" : "-";
+    document.getElementById("peakHour").innerText = peakHour !== "-" ? `${peakHour}:00` : "-";
 
-    // 🪑 Table UI
-    const tableDiv = document.getElementById("tableData");
-    tableDiv.innerHTML = "";
-
-    for (let table in tableMap) {
-      tableDiv.innerHTML += `
-        <div class="card">
-          Table ${table} → ₹${tableMap[table]}
-        </div>
-      `;
-    }
-
-    // 📈 Chart Fix (destroy old)
-    if (chartInstance) {
-      chartInstance.destroy();
-    }
-
-    let labels = Object.keys(dailyMap).slice(-7);
-    let values = Object.values(dailyMap).slice(-7);
-
-    chartInstance = new Chart(document.getElementById("salesChart"), {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Sales",
-          data: values,
-          borderWidth: 2
-        }]
-      }
-    });
-
+    renderTableData(tableMap);
+    renderChart(dailyMap);
   } catch (err) {
     console.error("Analytics Error:", err);
-    alert("⚠️ Failed to load analytics. Check backend.");
+    alert("Failed to load analytics. Check backend.");
   }
 }
 
-// 📄 PDF
 function downloadReport() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
+  doc.setFontSize(18);
   doc.text("Cafe Report", 20, 20);
 
-  let y = 40;
+  doc.setFontSize(12);
+  doc.text(`Today: ${document.getElementById("today").innerText}`, 20, 35);
+  doc.text(`This Month: ${document.getElementById("month").innerText}`, 20, 45);
+  doc.text(`This Year: ${document.getElementById("year").innerText}`, 20, 55);
+  doc.text(`Top Item: ${document.getElementById("topItem").innerText}`, 20, 65);
+  doc.text(`Peak Hour: ${document.getElementById("peakHour").innerText}`, 20, 75);
 
-  globalData.forEach(order => {
-    doc.text(`Table ${order.table} - ₹${order.total}`, 20, y);
+  let y = 95;
+
+  globalData.forEach((order, index) => {
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.text(
+      `${index + 1}. Table ${order.table} - ${formatCurrency(order.total)}`,
+      20,
+      y
+    );
     y += 10;
   });
 
   doc.save("report.pdf");
 }
 
-// 🚀 Load
 loadAnalytics();
-
 </script>
 
 </body>

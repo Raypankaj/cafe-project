@@ -2,36 +2,122 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Settings</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+
 <style>
-body {
-  font-family: Arial;
-  background: #1e1e2f;
-  color: white;
-  text-align: center;
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
 
-.container {
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
+  color: white;
   padding: 20px;
 }
 
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.section {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.section h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 input {
-  padding: 8px;
-  margin: 5px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
 }
 
 button {
-  padding: 8px 12px;
-  margin: 5px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #ff7b54, #ff4d6d);
+  color: white;
   cursor: pointer;
 }
 
+.secondary {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.danger {
+  background: #ef4444;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+}
+
 .item {
-  background: #2c2c3e;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 14px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.item-info {
+  text-align: left;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.empty {
+  opacity: 0.75;
+  text-align: center;
+}
+
+.hint {
+  margin-top: 10px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+@media (max-width: 640px) {
+  .item {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 </style>
 </head>
@@ -39,39 +125,77 @@ button {
 <body>
 
 <div class="container">
+  <h1>Cafe Settings</h1>
 
-<h2>🍔 Menu Management</h2>
+  <div class="section">
+    <h2>Menu Management</h2>
 
-<input id="name" placeholder="Item Name">
-<input id="price" type="number" placeholder="Price">
-<input id="discount" type="number" placeholder="Discount %">
+    <div class="form-row">
+      <input id="name" placeholder="Item Name">
+      <input id="price" type="number" min="0" placeholder="Price">
+      <input id="discount" type="number" min="0" max="100" placeholder="Discount %">
+    </div>
 
-<button onclick="addItem()">Add Item</button>
+    <button onclick="addItem()">Add Item</button>
 
-<div id="menuList"></div>
+    <p class="hint">This page saves menu data in this browser's local storage. It will not update other devices unless you also save to a backend/database.</p>
 
-<hr>
+    <div id="menuList" class="list"></div>
+  </div>
 
-<h2>🪑 Table Management</h2>
+  <div class="section">
+    <h2>Table Management</h2>
 
-<input id="tableNo" type="number" placeholder="Table No">
-<button onclick="toggleTable()">Enable/Disable</button>
+    <div class="form-row">
+      <input id="tableNo" type="number" min="1" placeholder="Table No">
+    </div>
 
-<div id="tableList"></div>
+    <button onclick="toggleTable()">Enable or Disable</button>
 
+    <div id="tableList" class="list" style="margin-top: 16px;"></div>
+  </div>
 </div>
 
 <script>
-
-// 🔥 Load data
 let menu = JSON.parse(localStorage.getItem("menu")) || [];
 let tables = JSON.parse(localStorage.getItem("tables")) || [];
 
-// 🍔 Add item
+function saveMenu() {
+  localStorage.setItem("menu", JSON.stringify(menu));
+  renderMenu();
+}
+
+function saveTables() {
+  localStorage.setItem("tables", JSON.stringify(tables));
+  renderTables();
+}
+
+function clearMenuInputs() {
+  document.getElementById("name").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("discount").value = "";
+}
+
 function addItem() {
-  const name = document.getElementById("name").value;
-  const price = document.getElementById("price").value;
-  const discount = document.getElementById("discount").value || 0;
+  const name = document.getElementById("name").value.trim();
+  const price = Number(document.getElementById("price").value);
+  const discountValue = document.getElementById("discount").value;
+  const discount = discountValue === "" ? 0 : Number(discountValue);
+
+  if (!name) {
+    alert("Enter item name");
+    return;
+  }
+
+  if (Number.isNaN(price) || price < 0) {
+    alert("Enter a valid price");
+    return;
+  }
+
+  if (Number.isNaN(discount) || discount < 0 || discount > 100) {
+    alert("Discount must be between 0 and 100");
+    return;
+  }
 
   const item = {
     id: Date.now(),
@@ -82,81 +206,175 @@ function addItem() {
 
   menu.push(item);
   saveMenu();
+  clearMenuInputs();
 }
 
-// 🗑 Delete
 function deleteItem(id) {
-  menu = menu.filter(item => item.id !== id);
+  menu = menu.filter((item) => item.id !== id);
   saveMenu();
 }
 
-// ✏️ Edit
 function editItem(id) {
-  const newPrice = prompt("Enter new price:");
-  menu = menu.map(item => {
-    if (item.id === id) item.price = newPrice;
+  const currentItem = menu.find((item) => item.id === id);
+
+  if (!currentItem) {
+    return;
+  }
+
+  const newName = prompt("Enter new item name:", currentItem.name);
+  if (newName === null) {
+    return;
+  }
+
+  const newPriceInput = prompt("Enter new price:", currentItem.price);
+  if (newPriceInput === null) {
+    return;
+  }
+
+  const newDiscountInput = prompt("Enter new discount %:", currentItem.discount);
+  if (newDiscountInput === null) {
+    return;
+  }
+
+  const newPrice = Number(newPriceInput);
+  const newDiscount = Number(newDiscountInput);
+
+  if (!newName.trim()) {
+    alert("Item name cannot be empty");
+    return;
+  }
+
+  if (Number.isNaN(newPrice) || newPrice < 0) {
+    alert("Enter a valid price");
+    return;
+  }
+
+  if (Number.isNaN(newDiscount) || newDiscount < 0 || newDiscount > 100) {
+    alert("Discount must be between 0 and 100");
+    return;
+  }
+
+  menu = menu.map((item) => {
+    if (item.id === id) {
+      return {
+        ...item,
+        name: newName.trim(),
+        price: newPrice,
+        discount: newDiscount
+      };
+    }
+
     return item;
   });
+
   saveMenu();
 }
 
-// 💾 Save Menu
-function saveMenu() {
-  localStorage.setItem("menu", JSON.stringify(menu));
-  renderMenu();
-}
-
-// 🎨 Render Menu
 function renderMenu() {
   const div = document.getElementById("menuList");
   div.innerHTML = "";
 
-  menu.forEach(item => {
+  if (menu.length === 0) {
+    div.innerHTML = "<p class='empty'>No menu items added yet</p>";
+    return;
+  }
+
+  menu.forEach((item) => {
+    const finalPrice = Math.round(item.price - (item.price * item.discount / 100));
+
     div.innerHTML += `
       <div class="item">
-        ${item.name} - ₹${item.price} (${item.discount}% OFF)
-        <br>
-        <button onclick="editItem(${item.id})">Edit</button>
-        <button onclick="deleteItem(${item.id})">Delete</button>
+        <div class="item-info">
+          <strong>${item.name}</strong>
+          <p>Price: Rs ${item.price}</p>
+          <p>Discount: ${item.discount}%</p>
+          <p>Final: Rs ${finalPrice}</p>
+        </div>
+        <div class="actions">
+          <button class="secondary" onclick="editItem(${item.id})">Edit</button>
+          <button class="danger" onclick="deleteItem(${item.id})">Delete</button>
+        </div>
       </div>
     `;
   });
 }
 
-// 🪑 Table Toggle
 function toggleTable() {
-  const tableNo = document.getElementById("tableNo").value;
+  const tableNoInput = document.getElementById("tableNo");
+  const tableNo = Number(tableNoInput.value);
 
-  let table = tables.find(t => t.tableNo == tableNo);
-
-  if (table) {
-    table.active = !table.active;
-  } else {
-    tables.push({ tableNo, active: true });
+  if (Number.isNaN(tableNo) || tableNo < 1) {
+    alert("Enter a valid table number");
+    return;
   }
 
-  localStorage.setItem("tables", JSON.stringify(tables));
-  renderTables();
+  const existingTable = tables.find((table) => Number(table.tableNo) === tableNo);
+
+  if (existingTable) {
+    existingTable.active = !existingTable.active;
+  } else {
+    tables.push({
+      tableNo,
+      active: true
+    });
+  }
+
+  tables.sort((a, b) => Number(a.tableNo) - Number(b.tableNo));
+  saveTables();
+  tableNoInput.value = "";
 }
 
-// 🎨 Render Tables
 function renderTables() {
   const div = document.getElementById("tableList");
   div.innerHTML = "";
 
-  tables.forEach(t => {
+  if (tables.length === 0) {
+    div.innerHTML = "<p class='empty'>No tables configured yet</p>";
+    return;
+  }
+
+  tables.forEach((table) => {
     div.innerHTML += `
       <div class="item">
-        Table ${t.tableNo} → ${t.active ? "🟢 Enabled" : "🔴 Disabled"}
+        <div class="item-info">
+          <strong>Table ${table.tableNo}</strong>
+          <p>Status: ${table.active ? "Enabled" : "Disabled"}</p>
+        </div>
+        <div class="actions">
+          <button onclick="toggleSpecificTable(${table.tableNo})">
+            ${table.active ? "Disable" : "Enable"}
+          </button>
+        </div>
       </div>
     `;
   });
 }
 
-// 🚀 Init
+function toggleSpecificTable(tableNo) {
+  const existingTable = tables.find((table) => Number(table.tableNo) === Number(tableNo));
+
+  if (!existingTable) {
+    return;
+  }
+
+  existingTable.active = !existingTable.active;
+  saveTables();
+}
+
+window.addEventListener("storage", (event) => {
+  if (event.key === "menu") {
+    menu = JSON.parse(localStorage.getItem("menu")) || [];
+    renderMenu();
+  }
+
+  if (event.key === "tables") {
+    tables = JSON.parse(localStorage.getItem("tables")) || [];
+    renderTables();
+  }
+});
+
 renderMenu();
 renderTables();
-
 </script>
 
 </body>

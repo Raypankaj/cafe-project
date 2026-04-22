@@ -12,16 +12,17 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
+      font-family: "Poppins", sans-serif;
     }
 
     body {
+      min-height: 100vh;
       background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
       color: white;
     }
 
     .order-container {
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -37,12 +38,12 @@
 
     .timer-box {
       margin-top: 20px;
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(12px);
       padding: 25px;
       border-radius: 15px;
-      border: 1px solid rgba(255,255,255,0.1);
-      width: 280px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: min(320px, 100%);
     }
 
     #timer {
@@ -51,36 +52,45 @@
     }
 
     #statusText {
-      opacity: 0.8;
+      opacity: 0.85;
       font-size: 14px;
+      line-height: 1.5;
     }
 
-    /* 🔥 Action Box */
     #actionBox {
       margin-top: 20px;
+      min-height: 48px;
     }
 
     button {
       padding: 10px 20px;
-      background: #C89B3C;
+      background: #c89b3c;
       border: none;
       border-radius: 6px;
       cursor: pointer;
       margin-top: 10px;
+      color: #111827;
+      font-weight: 600;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
     }
 
     img {
       margin-top: 10px;
       border-radius: 10px;
+      max-width: 200px;
+      width: 100%;
+      height: auto;
     }
-
   </style>
 </head>
 
 <body>
-
   <div class="order-container">
-    <h1>🎉 Order Confirmed</h1>
+    <h1>Order Confirmed</h1>
     <p id="orderId"></p>
 
     <div class="timer-box">
@@ -88,96 +98,194 @@
       <p id="statusText">Waiting for confirmation...</p>
     </div>
 
-    <!-- 🔥 Dynamic area -->
     <div id="actionBox"></div>
-
   </div>
 
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 
   <script>
-    const socket = io("https://brew-haven-backend.onrender.com");
+    const BASE_URL = "https://brew-haven-backend.onrender.com";
+    const socket = io(BASE_URL);
 
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get("id");
 
-    document.getElementById("orderId").innerText = "Order ID: #" + orderId;
+    const orderIdEl = document.getElementById("orderId");
+    const timerEl = document.getElementById("timer");
+    const statusTextEl = document.getElementById("statusText");
+    const actionBoxEl = document.getElementById("actionBox");
 
     let timerInterval;
 
-    function startTimer(minutes) {
-      let time = minutes * 60;
+    if (!orderId) {
+      orderIdEl.innerText = "Invalid order link";
+      timerEl.innerText = "Order Not Found";
+      statusTextEl.innerText = "Please place a new order.";
+      socket.disconnect();
+    } else {
+      orderIdEl.innerText = "Order ID: #" + orderId;
+      loadOrderStatus();
+    }
 
-      const timerEl = document.getElementById("timer");
+    function setWaitingState(message) {
+      timerEl.innerText = "Waiting...";
+      statusTextEl.innerText = message || "Waiting for confirmation...";
+      actionBoxEl.innerHTML = "";
+    }
+
+    function setPreparingState(minutes) {
+      statusTextEl.innerText = "Preparing your order...";
+      startTimer(minutes);
+      actionBoxEl.innerHTML = "";
+    }
+
+    function setReadyState() {
+      clearInterval(timerInterval);
+      timerEl.innerText = "Order Ready";
+      statusTextEl.innerText = "Please collect your order.";
+      actionBoxEl.innerHTML = `
+        <button id="confirmBtn" onclick="confirmReceived()">Confirm Received</button>
+      `;
+    }
+
+    function setCollectedState() {
+      clearInterval(timerInterval);
+      timerEl.innerText = "Collected";
+      statusTextEl.innerText = "Complete your payment below.";
+      showPayment();
+    }
+
+    function startTimer(minutes) {
+      let time = Math.max(0, Math.floor(Number(minutes) || 0) * 60);
 
       clearInterval(timerInterval);
 
+      if (time === 0) {
+        timerEl.innerText = "Preparing...";
+        return;
+      }
+
       timerInterval = setInterval(() => {
-        let min = Math.floor(time / 60);
-        let sec = time % 60;
-
-        sec = sec < 10 ? "0" + sec : sec;
-
-        timerEl.innerText = `${min}:${sec}`;
-
+        const min = Math.floor(time / 60);
+        const sec = time % 60;
+        timerEl.innerText = `${min}:${String(sec).padStart(2, "0")}`;
         time--;
 
         if (time < 0) {
           clearInterval(timerInterval);
-          timerEl.innerText = "Order Ready ✅";
+          timerEl.innerText = "Order Ready";
         }
       }, 1000);
     }
 
-    // 🔥 Accepted
-    socket.on("orderAccepted", (data) => {
-      if (data.id == orderId) {
-        document.getElementById("statusText").innerText = "Preparing your order...";
-        startTimer(data.time);
+    async function loadOrderStatus() {
+      setWaitingState("Fetching latest order status...");
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/orders/${encodeURIComponent(orderId)}`);
+
+        if (!response.ok) {
+          setWaitingState("Waiting for confirmation...");
+          return;
+        }
+
+        const data = await response.json();
+        applyOrderState(data);
+      } catch (error) {
+        console.log("Unable to load latest order state", error);
+        setWaitingState("Waiting for confirmation...");
       }
-    });
-
-    // 🟢 Done → show confirm button
-    socket.on("orderDone", (data) => {
-      if (data.id == orderId) {
-
-        clearInterval(timerInterval);
-
-        document.getElementById("timer").innerText = "Order Ready ✅";
-        document.getElementById("statusText").innerText = "Please collect your order 🍽️";
-
-        document.getElementById("actionBox").innerHTML = `
-          <button onclick="confirmReceived()">Confirm Received</button>
-        `;
-      }
-    });
-
-    // ✅ Customer confirms
-    function confirmReceived() {
-      fetch(`https://brew-haven-backend.onrender.com/api/orders/${orderId}/collected`, {
-        method: "PUT"
-      })
-      .then(() => {
-        showPayment();
-      });
     }
 
-    // 💳 Show QR
+    function applyOrderState(order) {
+      if (!order) {
+        setWaitingState("Waiting for confirmation...");
+        return;
+      }
+
+      const status = String(order.status || "").toLowerCase();
+      const prepTime = order.time || order.prepTime || 0;
+
+      if (status === "done" || status === "ready") {
+        setReadyState();
+        return;
+      }
+
+      if (status === "collected") {
+        setCollectedState();
+        return;
+      }
+
+      if (status === "accepted" || status === "preparing") {
+        setPreparingState(prepTime);
+        return;
+      }
+
+      setWaitingState("Waiting for confirmation...");
+    }
+
+    socket.on("orderAccepted", (data) => {
+      if (String(data.id) === String(orderId)) {
+        setPreparingState(data.time);
+      }
+    });
+
+    socket.on("orderDone", (data) => {
+      if (String(data.id) === String(orderId)) {
+        setReadyState();
+      }
+    });
+
+    socket.on("orderCollected", (data) => {
+      if (String(data.id) === String(orderId)) {
+        setCollectedState();
+      }
+    });
+
+    async function confirmReceived() {
+      const confirmBtn = document.getElementById("confirmBtn");
+
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "Confirming...";
+      }
+
+      try {
+        const response = await fetch(`${BASE_URL}/api/orders/${encodeURIComponent(orderId)}/collected`, {
+          method: "PUT"
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to confirm collection");
+        }
+
+        showPayment();
+      } catch (error) {
+        alert(error.message || "Something went wrong");
+        console.log(error);
+
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.innerText = "Confirm Received";
+        }
+      }
+    }
+
     function showPayment() {
-      document.getElementById("actionBox").innerHTML = `
+      timerEl.innerText = "Payment Pending";
+      statusTextEl.innerText = "Scan and pay to complete your order.";
+      actionBoxEl.innerHTML = `
         <h3>Scan & Pay</h3>
-        <img src="assets/WhatsApp Image 2026-04-16 at 13.27.45.jpeg" width="200"/>
+        <img src="assets/WhatsApp Image 2026-04-16 at 13.27.45.jpeg" alt="UPI QR Code">
         <p>UPI: yourupi@okaxis</p>
         <button onclick="finishOrder()">Done Payment</button>
       `;
     }
 
     function finishOrder() {
-      alert("Thanks for visiting ☕");
+      alert("Thanks for visiting");
       window.location.href = "index.html";
     }
-
   </script>
-
 </body>
 </html>

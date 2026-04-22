@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-// 🧾 Item Schema (better structure)
 const itemSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -16,34 +15,28 @@ const itemSchema = new mongoose.Schema({
   }
 });
 
-// 📦 Order Schema
 const orderSchema = new mongoose.Schema({
   table: {
     type: Number,
     required: true
   },
-
   items: {
     type: [itemSchema],
     required: true
   },
-
   total: {
     type: Number,
     required: true
   },
-
   status: {
     type: String,
-    enum: ["new", "accepted", "done"],
+    enum: ["new", "accepted", "done", "collected"],
     default: "new"
   },
-
   time: {
     type: Number,
     default: null
   }
-
 }, {
   timestamps: true
 });
