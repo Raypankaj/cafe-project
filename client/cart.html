@@ -1,235 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Cart | Brew Haven</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #ff7b54;
-            --secondary: #ff4d6d;
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart</title>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 
-        body {
-            background-color: var(--bg);
-            color: white;
-            padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-top: 20px;
-        }
+    body {
+      background: #0f172a;
+      color: white;
+      padding: 15px;
+    }
 
-        .header h1 { font-size: 28px; font-weight: 600; }
-        .table-badge {
-            background: var(--primary);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: inline-block;
-            margin-top: 5px;
-        }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-        #cartItems {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+    .header h1 {
+      font-size: 22px;
+    }
 
-        .cart-item {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            animation: fadeIn 0.5s ease;
-        }
+    #cartItems {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    .item {
+      background: #1e293b;
+      padding: 15px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        .item-info h3 { font-size: 16px; margin-bottom: 4px; }
-        .item-info p { color: #94a3b8; font-size: 14px; }
+    .item h3 {
+      font-size: 16px;
+    }
 
-        .remove-btn {
-            background: #ef444422;
-            color: #ef4444;
-            border: 1px solid #ef4444;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+    .item button {
+      background: #ef4444;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
 
-        .remove-btn:hover { background: #ef4444; color: white; }
+    .total {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 18px;
+    }
 
-        .cart-summary {
-            margin-top: 30px;
-            padding: 20px;
-            border-top: 1px solid #334155;
-        }
+    .cart-btn {
+      margin-top: 20px;
+      text-align: center;
+    }
 
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
+    .cart-btn button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(45deg, #ff7b54, #ff4d6d);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-        .order-btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 123, 84, 0.3);
-            transition: 0.3s;
-        }
-
-        .order-btn:hover { transform: scale(1.02); }
-        .order-btn:disabled { background: #475569; cursor: not-allowed; transform: none; }
-
-        .empty-msg {
-            text-align: center;
-            margin-top: 50px;
-            color: #94a3b8;
-        }
-    </style>
+    .empty {
+      text-align: center;
+      margin-top: 50px;
+      opacity: 0.6;
+    }
+  </style>
 </head>
+
 <body>
 
-    <div class="header">
-        <h1>🛒 Your Cart</h1>
-        <div id="tableBadge" class="table-badge">Table #1</div>
-    </div>
+  <div class="header">
+    <h1>🛒 Your Cart</h1>
+    <p id="tableInfo"></p>
+  </div>
 
-    <div id="cartItems">
-        </div>
+  <div id="cartItems"></div>
 
-    <div class="cart-summary" id="cartSummary">
-        <div class="total-row">
-            <span>Total Amount</span>
-            <span id="totalAmount">₹0</span>
-        </div>
-        <button id="orderBtn" class="order-btn" onclick="placeOrder()">Confirm Order</button>
-    </div>
+  <div class="total">
+    <h3 id="totalAmount">Total: ₹0</h3>
+  </div>
 
-    <script>
-        const API_BASE = "https://brew-haven-backend-pgyl.onrender.com";
-        
-        // 1. Get Table Number from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const tableNo = urlParams.get('table') || '1';
-        document.getElementById('tableBadge').innerText = `Table #${tableNo}`;
+  <div class="cart-btn">
+    <button id="orderBtn" onclick="placeOrder()">Place Order</button>
+  </div>
 
-        // 2. Load Cart Data
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  <script>
+    // 👉 Table from URL
+    const params = new URLSearchParams(window.location.search);
+    const table = params.get("table") || 1;
+    document.getElementById("tableInfo").innerText = "Table #" + table;
 
-        function renderCart() {
-            const container = document.getElementById('cartItems');
-            const summary = document.getElementById('cartSummary');
-            let total = 0;
+    // 👉 Cart
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-            if (cart.length === 0) {
-                container.innerHTML = `<div class="empty-msg">
-                    <p style="font-size: 50px;">😴</p>
-                    <p>Your cart is empty. Go add some coffee!</p>
-                    <br>
-                    <a href="menu.html" style="color: #ff7b54; text-decoration: none;">← Back to Menu</a>
-                </div>`;
-                summary.style.display = 'none';
-                return;
-            }
+    let cartDiv = document.getElementById("cartItems");
+    let total = 0;
 
-            summary.style.display = 'block';
-            container.innerHTML = '';
-            
-            cart.forEach((item, index) => {
-                total += (item.price * (item.qty || 1));
-                container.innerHTML += `
-                    <div class="cart-item">
-                        <div class="item-info">
-                            <h3>${item.name}</h3>
-                            <p>₹${item.price} x ${item.qty || 1}</p>
-                        </div>
-                        <button class="remove-btn" onclick="removeItem(${index})">Remove</button>
-                    </div>
-                `;
-            });
+    function renderCart() {
+      cartDiv.innerHTML = "";
+      total = 0;
 
-            document.getElementById('totalAmount').innerText = `₹${total}`;
-            return total;
-        }
+      if (cart.length === 0) {
+        cartDiv.innerHTML = "<p class='empty'>Your cart is empty 😴</p>";
+        document.getElementById("totalAmount").innerText = "";
+        return;
+      }
 
-        function removeItem(index) {
-            cart.splice(index, 1);
-            localStorage.setItem('cart', JSON.stringify(cart));
-            renderCart();
-        }
+      cart.forEach((item, index) => {
+        total += item.price;
 
-        // 3. Place Order Function
-        async function placeOrder() {
-            const total = cart.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0);
-            const orderBtn = document.getElementById('orderBtn');
+        cartDiv.innerHTML += `
+          <div class="item">
+            <div>
+              <h3>${item.name}</h3>
+              <p>₹${item.price}</p>
+            </div>
+            <button onclick="removeItem(${index})">Remove</button>
+          </div>
+        `;
+      });
 
-            // Button Loading State
-            orderBtn.innerText = "Placing Order...";
-            orderBtn.disabled = true;
+      document.getElementById("totalAmount").innerText = "Total: ₹" + total;
+    }
 
-            const orderPayload = {
-                table: tableNo,
-                items: cart,
-                total: total,
-                status: "pending",
-                timestamp: new Date()
-            };
+    function removeItem(index) {
+      cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      renderCart();
+    }
 
-            try {
-                const response = await fetch(`${API_BASE}/api/orders`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderPayload)
-                });
+    function placeOrder() {
+      if (cart.length === 0) {
+        alert("Cart is empty!");
+        return;
+      }
 
-                const result = await response.json();
+      const btn = document.getElementById("orderBtn");
+      btn.innerText = "Placing...";
+      btn.disabled = true;
 
-                if (response.ok) {
-                    // Success!
-                    localStorage.removeItem('cart');
-                    alert("Order Placed! ☕");
-                    // Redirect to order tracking page with the new Order ID
-                    window.location.href = `order.html?id=${result._id}`;
-                } else {
-                    throw new Error(result.message || "Order failed");
-                }
+      fetch("https://brew-haven-backend.onrender.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          table: table,
+          items: cart,
+          total: total
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        localStorage.removeItem("cart");
+        window.location.href = `order.html?id=${data._id}`; // ✅ FIX
+      })
+      .catch(err => {
+        alert("Error placing order");
+        console.log(err);
+      });
+    }
 
-            } catch (error) {
-                console.error("Order Error:", error);
-                alert("Order Failed! Check your internet or server.");
-                orderBtn.innerText = "Confirm Order";
-                orderBtn.disabled = false;
-            }
-        }
+    renderCart();
+    function placeOrder() {
+  const tables = JSON.parse(localStorage.getItem("tables")) || [];
 
-        // Initial Render
-        renderCart();
-    </script>
+  const tableData = tables.find(t => t.tableNo == table);
+
+  // ❌ Block if disabled
+  if (tableData && tableData.active === false) {
+    alert("❌ This table is currently disabled. Please contact staff.");
+    return;
+  }
+
+  if (cart.length === 0) {
+    alert("Cart is empty!");
+    return;
+  }
+
+  fetch("http://localhost:5000/api/orders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      table: table,
+      items: cart,
+      total: total
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    localStorage.removeItem("cart");
+    window.location.href = `order.html?id=${data._id}`;
+  })
+  .catch(err => {
+    alert("Error placing order");
+    console.log(err);
+  });
+}
+  </script>
+
 </body>
 </html>

@@ -1,9 +1,9 @@
 require("dotenv").config();
 
+
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
-const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 
 const connectDB = require("./config/db");
@@ -33,17 +33,6 @@ io.on("connection", (socket) => {
 // 🔗 Connect DB
 connectDB();
 
-// 📝 Menu Schema (Agar DB mein items hain toh ye route unhe fetch karega)
-const menuSchema = new mongoose.Schema({
-  name: String,
-  price: Number,
-  discount: Number,
-  category: String,
-  image: String
-});
-// Ye check karega ki agar model pehle se hai toh use kare, warna naya banaye
-const Menu = mongoose.models.Menu || mongoose.model("Menu", menuSchema);
-
 // 🧠 Middleware
 app.use(cors());
 app.use(express.json());
@@ -51,20 +40,7 @@ app.use(express.json());
 // 🔥 Make io accessible globally
 app.locals.io = io;
 
-// 📦 ROUTES START HERE
-
-// 👉 1. Menu Route (Frontend menu.html yahan se data lega)
-app.get("/api/menu", async (req, res) => {
-  try {
-    const items = await Menu.find();
-    res.json(items);
-  } catch (err) {
-    console.error("Menu fetch error:", err);
-    res.status(500).json({ message: "Error fetching menu" });
-  }
-});
-
-// 👉 2. Orders Route (cart.html yahan order bhejega)
+// 📦 Routes
 app.use("/api/orders", orderRoutes);
 
 // 🏠 Root route
@@ -72,13 +48,13 @@ app.get("/", (req, res) => {
   res.send("🚀 Cafe Server Running...");
 });
 
-// ❌ 404 Handler (Ye hamesha routes ke niche hona chahiye)
+// ❌ 404 Handler
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// ❌ Global Error Handler (Fixed the syntax error here)
-app.use((err, req, res, next) => {
+// ❌ Global Error Handler
+app.use((err, req, res, next) => {https://brew-haven-backend-pgy1.onrender.com
   console.error("Server Error:", err.message);
   res.status(500).json({ message: "Internal Server Error" });
 });
@@ -87,5 +63,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`🔥 Server running on port ${PORT}`);
+  console.log(`🔥 Server running on http://localhost:${PORT}`);
 });

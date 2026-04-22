@@ -2,203 +2,162 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Settings | Brew Haven Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<title>Settings</title>
+
 <style>
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: #1e1e2f;
-    color: white;
-    text-align: center;
-    margin: 0; padding: 20px;
-  }
-  .container { max-width: 600px; margin: auto; }
-  input {
-    padding: 10px; margin: 5px; border-radius: 5px;
-    border: none; outline: none; width: calc(33% - 20px);
-  }
-  button {
-    padding: 10px 15px; margin: 5px; cursor: pointer;
-    background: linear-gradient(45deg, #ff7b54, #ff4d6d);
-    color: white; border: none; border-radius: 5px; font-weight: bold;
-  }
-  button:hover { opacity: 0.9; }
-  .save-btn { background: #10b981; width: 100%; margin-top: 15px; font-size: 16px;}
-  .item {
-    background: #2c2c3e; margin: 10px 0; padding: 15px;
-    border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
-  }
-  .item-actions button {
-    padding: 5px 10px; font-size: 12px; margin-left: 5px;
-  }
-  .edit-btn { background: #3b82f6; }
-  .del-btn { background: #ef4444; }
-  hr { border-color: #333; margin: 30px 0; }
+body {
+  font-family: Arial;
+  background: #1e1e2f;
+  color: white;
+  text-align: center;
+}
+
+.container {
+  padding: 20px;
+}
+
+input {
+  padding: 8px;
+  margin: 5px;
+}
+
+button {
+  padding: 8px 12px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.item {
+  background: #2c2c3e;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 8px;
+}
 </style>
 </head>
+
 <body>
 
 <div class="container">
 
-  <h2>🍔 Menu Management</h2>
-  
-  <div>
-    <input id="name" placeholder="Item Name">
-    <input id="price" type="number" placeholder="Price (₹)">
-    <input id="discount" type="number" placeholder="Discount %">
-  </div>
-  <button onclick="addItem()">Add to List</button>
+<h2>🍔 Menu Management</h2>
 
-  <div id="menuList">Loading menu from server...</div>
+<input id="name" placeholder="Item Name">
+<input id="price" type="number" placeholder="Price">
+<input id="discount" type="number" placeholder="Discount %">
 
-  <button id="saveServerBtn" class="save-btn" onclick="saveMenuToServer()">💾 Save Changes to Server</button>
+<button onclick="addItem()">Add Item</button>
 
-  <hr>
+<div id="menuList"></div>
 
-  <h2>🪑 Table Management (Local)</h2>
-  <input id="tableNo" type="number" placeholder="Table No">
-  <button onclick="toggleTable()">Enable/Disable</button>
-  <div id="tableList"></div>
+<hr>
+
+<h2>🪑 Table Management</h2>
+
+<input id="tableNo" type="number" placeholder="Table No">
+<button onclick="toggleTable()">Enable/Disable</button>
+
+<div id="tableList"></div>
 
 </div>
 
 <script>
-const API_BASE = "https://brew-haven-backend-pgyl.onrender.com";
 
-// 🔥 Initialize empty menu array
-let menu = [];
+// 🔥 Load data
+let menu = JSON.parse(localStorage.getItem("menu")) || [];
+let tables = JSON.parse(localStorage.getItem("tables")) || [];
 
-// 📥 Fetch existing menu from Backend on page load
-async function fetchMenu() {
-  try {
-    const response = await fetch(`${API_BASE}/api/menu`);
-    if(response.ok) {
-        menu = await response.json();
-        renderMenu();
-    } else {
-        document.getElementById("menuList").innerText = "Failed to load menu.";
-    }
-  } catch (error) {
-    console.error(error);
-    document.getElementById("menuList").innerText = "Server is offline.";
-  }
-}
-
-// 🍔 Add item to local array
+// 🍔 Add item
 function addItem() {
   const name = document.getElementById("name").value;
   const price = document.getElementById("price").value;
   const discount = document.getElementById("discount").value || 0;
 
-  if(!name || !price) return alert("Name and Price are required!");
+  const item = {
+    id: Date.now(),
+    name,
+    price,
+    discount
+  };
 
-  menu.push({ id: Date.now().toString(), name, price: Number(price), discount: Number(discount) });
-  
-  // Clear inputs
-  document.getElementById("name").value = "";
-  document.getElementById("price").value = "";
-  document.getElementById("discount").value = "";
-  
-  renderMenu();
+  menu.push(item);
+  saveMenu();
 }
 
-// 🗑 Delete from array
+// 🗑 Delete
 function deleteItem(id) {
-  menu = menu.filter(item => item.id !== id && item._id !== id);
-  renderMenu();
+  menu = menu.filter(item => item.id !== id);
+  saveMenu();
 }
 
 // ✏️ Edit
 function editItem(id) {
-  const newPrice = prompt("Enter new price (₹):");
-  if(!newPrice) return;
+  const newPrice = prompt("Enter new price:");
   menu = menu.map(item => {
-    if (item.id === id || item._id === id) item.price = Number(newPrice);
+    if (item.id === id) item.price = newPrice;
     return item;
   });
+  saveMenu();
+}
+
+// 💾 Save Menu
+function saveMenu() {
+  localStorage.setItem("menu", JSON.stringify(menu));
   renderMenu();
 }
 
-// 🎨 Render Menu to Screen
+// 🎨 Render Menu
 function renderMenu() {
   const div = document.getElementById("menuList");
   div.innerHTML = "";
 
-  if(menu.length === 0) {
-      div.innerHTML = "<p>No items in menu.</p>";
-      return;
-  }
-
   menu.forEach(item => {
-    const itemId = item._id || item.id; // Handles both MongoDB IDs and local IDs
     div.innerHTML += `
       <div class="item">
-        <div style="text-align: left;">
-            <b>${item.name}</b> <br>
-            <span style="color: #9ca3af; font-size: 14px;">₹${item.price} (${item.discount || 0}% OFF)</span>
-        </div>
-        <div class="item-actions">
-            <button class="edit-btn" onclick="editItem('${itemId}')">Edit</button>
-            <button class="del-btn" onclick="deleteItem('${itemId}')">Delete</button>
-        </div>
+        ${item.name} - ₹${item.price} (${item.discount}% OFF)
+        <br>
+        <button onclick="editItem(${item.id})">Edit</button>
+        <button onclick="deleteItem(${item.id})">Delete</button>
       </div>
     `;
   });
 }
 
-// 🚀 SEND DATA TO BACKEND (The magic happens here)
-async function saveMenuToServer() {
-  const btn = document.getElementById("saveServerBtn");
-  btn.innerText = "⏳ Saving to Database...";
-  btn.disabled = true;
-
-  try {
-    const response = await fetch(`${API_BASE}/api/menu`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(menu)
-    });
-
-    if(response.ok) {
-        alert("✅ Menu updated successfully on all customer devices!");
-        fetchMenu(); // Refresh from server
-    } else {
-        throw new Error("Failed to save");
-    }
-  } catch (err) {
-    alert("❌ Error saving menu. Is the backend running?");
-    console.error(err);
-  } finally {
-    btn.innerText = "💾 Save Changes to Server";
-    btn.disabled = false;
-  }
-}
-
-// --- TABLE MANAGEMENT (Kept as LocalStorage for now) ---
-let tables = JSON.parse(localStorage.getItem("tables")) || [];
-
+// 🪑 Table Toggle
 function toggleTable() {
   const tableNo = document.getElementById("tableNo").value;
-  if(!tableNo) return;
+
   let table = tables.find(t => t.tableNo == tableNo);
-  if (table) table.active = !table.active;
-  else tables.push({ tableNo, active: true });
+
+  if (table) {
+    table.active = !table.active;
+  } else {
+    tables.push({ tableNo, active: true });
+  }
+
   localStorage.setItem("tables", JSON.stringify(tables));
   renderTables();
 }
 
+// 🎨 Render Tables
 function renderTables() {
   const div = document.getElementById("tableList");
   div.innerHTML = "";
+
   tables.forEach(t => {
-    div.innerHTML += `<div class="item">Table ${t.tableNo} → ${t.active ? "🟢 Enabled" : "🔴 Disabled"}</div>`;
+    div.innerHTML += `
+      <div class="item">
+        Table ${t.tableNo} → ${t.active ? "🟢 Enabled" : "🔴 Disabled"}
+      </div>
+    `;
   });
 }
 
-// 🚀 Init Data on Load
-fetchMenu();
+// 🚀 Init
+renderMenu();
 renderTables();
 
 </script>
+
 </body>
 </html>
