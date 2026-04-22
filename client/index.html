@@ -12,42 +12,34 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
+      font-family: "Poppins", sans-serif;
     }
 
-    /* 🎯 Same theme as admin */
     body {
       overflow: hidden;
       color: white;
       background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
     }
 
-    /* 🎥 Background Video */
     #bg-video {
       position: fixed;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
       z-index: -2;
-      opacity: 0.6; /* blend with theme */
+      opacity: 0.6;
     }
 
-    /* 🌑 Overlay (theme matching) */
     .overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(30,30,47,0.7);
+      inset: 0;
+      background: rgba(30, 30, 47, 0.7);
       z-index: -1;
     }
 
-    /* 📦 Main content */
     .container {
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -62,16 +54,22 @@
     }
 
     p {
-      opacity: 0.8;
+      opacity: 0.85;
       margin-bottom: 20px;
     }
 
     .table {
-      margin-bottom: 20px;
+      margin-bottom: 14px;
       font-size: 18px;
     }
 
-    /* 🔘 Button */
+    .status {
+      min-height: 24px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #ffd166;
+    }
+
     button {
       padding: 12px 25px;
       border: none;
@@ -80,55 +78,85 @@
       color: white;
       font-size: 16px;
       cursor: pointer;
-      transition: 0.3s;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
 
     button:hover {
       transform: scale(1.05);
     }
 
-    /* 📱 Mobile fix */
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
+      transform: none;
+    }
+
     @media (max-width: 500px) {
       h1 {
         font-size: 24px;
       }
     }
-
   </style>
 </head>
 
 <body>
-
-  <!-- 🎥 Video -->
-  <video autoplay muted loop id="bg-video">
+  <video autoplay muted loop playsinline id="bg-video">
     <source src="assets/images/cafe.mp4" type="video/mp4">
   </video>
 
-  <!-- 🌑 Overlay -->
   <div class="overlay"></div>
 
-  <!-- 📦 Content -->
   <div class="container">
-    <h1>☕ Brew Haven</h1>
+    <h1>Brew Haven</h1>
     <p>Experience the taste of perfection</p>
 
     <div class="table">
       Table No: <span id="tableNo">#1</span>
     </div>
 
-    <button onclick="goToMenu()">View Menu</button>
+    <div class="status" id="tableStatus"></div>
+
+    <button id="menuBtn" onclick="goToMenu()">View Menu</button>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const table = params.get("table") || 1;
+    const table = params.get("table") || "1";
 
-    document.getElementById("tableNo").innerText = "#" + table;
+    const tableNoEl = document.getElementById("tableNo");
+    const tableStatusEl = document.getElementById("tableStatus");
+    const menuBtn = document.getElementById("menuBtn");
+
+    tableNoEl.innerText = "#" + table;
+
+    function getTableConfig() {
+      const tables = JSON.parse(localStorage.getItem("tables")) || [];
+      return tables.find((item) => String(item.tableNo) === String(table));
+    }
+
+    function validateTableAccess() {
+      const tableConfig = getTableConfig();
+
+      if (tableConfig && tableConfig.active === false) {
+        tableStatusEl.innerText = "This table is currently disabled. Please contact staff.";
+        menuBtn.disabled = true;
+        return false;
+      }
+
+      tableStatusEl.innerText = "";
+      menuBtn.disabled = false;
+      return true;
+    }
 
     function goToMenu() {
-      window.location.href = `menu.html?table=${table}`;
-    }
-  </script>
+      if (!validateTableAccess()) {
+        return;
+      }
 
+      window.location.href = `menu.html?table=${encodeURIComponent(table)}`;
+    }
+
+    validateTableAccess();
+  </script>
 </body>
 </html>

@@ -8,16 +8,26 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
+      margin: 0;
+      min-height: 100vh;
       background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
       color: white;
-      padding: 15px;
-      font-family: 'Poppins', sans-serif;
+      padding: 15px 15px 90px;
+      font-family: "Poppins", sans-serif;
     }
 
     .header {
       text-align: center;
       margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin-bottom: 8px;
     }
 
     .menu {
@@ -27,11 +37,21 @@
     }
 
     .item {
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(12px);
       padding: 15px;
       border-radius: 12px;
       text-align: center;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    .item h3 {
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .item p {
+      margin-bottom: 12px;
     }
 
     .item button {
@@ -48,7 +68,7 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      width: 90%;
+      width: min(420px, calc(100% - 30px));
     }
 
     .cart-btn button {
@@ -58,119 +78,186 @@
       background: linear-gradient(45deg, #ff7b54, #ff4d6d);
       border: none;
       color: white;
+      font-size: 16px;
+      cursor: pointer;
     }
 
     .toast {
       position: fixed;
-      bottom: 80px;
+      bottom: 88px;
       left: 50%;
       transform: translateX(-50%);
-      background: #333;
-      padding: 10px;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 10px 14px;
       border-radius: 8px;
+      z-index: 10;
+      white-space: nowrap;
     }
 
+    .empty,
+    .blocked {
+      text-align: center;
+      margin-top: 50px;
+      opacity: 0.9;
+    }
   </style>
 </head>
 
 <body>
-
   <div class="header">
-    <h1>☕ Brew Haven Menu</h1>
+    <h1>Brew Haven Menu</h1>
     <p id="tableInfo"></p>
   </div>
 
   <div class="menu" id="menu"></div>
 
   <div class="cart-btn">
-    <button onclick="goToCart()">Go to Cart 🛒</button>
+    <button id="cartBtn" onclick="goToCart()">Go to Cart</button>
   </div>
 
-<script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const table = params.get("table") || "1";
+    const cartKey = `cart_table_${table}`;
 
-const params = new URLSearchParams(window.location.search);
-const table = params.get("table") || 1;
+    const tableInfo = document.getElementById("tableInfo");
+    const menuDiv = document.getElementById("menu");
+    const cartBtn = document.getElementById("cartBtn");
 
-document.getElementById("tableInfo").innerText = "Table #" + table;
+    tableInfo.innerText = "Table #" + table;
 
-function goToCart() {
-  window.location.href = `cart.html?table=${table}`;
-}
+    function getMenuItems() {
+      return JSON.parse(localStorage.getItem("menu")) || [];
+    }
 
-// 🔥 LOAD MENU FROM SETTINGS
-let menu = JSON.parse(localStorage.getItem("menu")) || [];
+    function getTables() {
+      return JSON.parse(localStorage.getItem("tables")) || [];
+    }
 
-const menuDiv = document.getElementById("menu");
+    function getTableData() {
+      return getTables().find((item) => String(item.tableNo) === String(table));
+    }
 
-function renderMenu() {
-  menuDiv.innerHTML = "";
+    function isTableDisabled() {
+      const tableData = getTableData();
+      return !!(tableData && tableData.active === false);
+    }
 
-  if (menu.length === 0) {
-    menuDiv.innerHTML = "<p>No items available 😢</p>";
-    return;
-  }
+    function formatPrice(value) {
+      return Math.round(Number(value) || 0);
+    }
 
-  menu.forEach(item => {
-    const finalPrice = item.price - (item.price * item.discount / 100);
+    function getDiscountedPrice(item) {
+      const basePrice = Number(item.price) || 0;
+      const discount = Number(item.discount) || 0;
+      const finalPrice = basePrice - (basePrice * discount / 100);
+      return formatPrice(finalPrice);
+    }
 
-    const div = document.createElement("div");
-    div.classList.add("item");
-
-    div.innerHTML = `
-      <h3>${item.name}</h3>
-      ${
-        item.discount > 0
-        ? `<p><del>₹${item.price}</del> ₹${finalPrice}</p>`
-        : `<p>₹${item.price}</p>`
+    function goToCart() {
+      if (isTableDisabled()) {
+        showBlockedState();
+        return;
       }
-    `;
 
-    const btn = document.createElement("button");
-    btn.innerText = "Add";
-    btn.onclick = () => addToCart(item.name, finalPrice);
+      window.location.href = `cart.html?table=${encodeURIComponent(table)}`;
+    }
 
-    div.appendChild(btn);
+    function addToCart(item) {
+      if (isTableDisabled()) {
+        showBlockedState();
+        return;
+      }
 
-    menuDiv.appendChild(div);
-  });
-}
+      const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+      const price = getDiscountedPrice(item);
 
-renderMenu();
+      cart.push({
+        name: item.name,
+        price: price
+      });
 
-// 🛒 CART
-function addToCart(name, price) {
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      localStorage.setItem(cartKey, JSON.stringify(cart));
+      showToast(item.name + " added");
+    }
 
-  cart.push({ name, price });
+    function showBlockedState() {
+      menuDiv.innerHTML = `
+        <div class="blocked">
+          <h2>Table Disabled</h2>
+          <p>This table is currently not accepting orders.</p>
+        </div>
+      `;
+      cartBtn.disabled = true;
+    }
 
-  localStorage.setItem("cart", JSON.stringify(cart));
+    function renderMenu() {
+      const menuItems = getMenuItems();
 
-  showToast(name + " added ✅");
-}
+      if (isTableDisabled()) {
+        showBlockedState();
+        return;
+      }
 
-// 🔔 Toast
-function showToast(msg) {
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.innerText = msg;
+      cartBtn.disabled = false;
+      menuDiv.innerHTML = "";
 
-  document.body.appendChild(toast);
+      if (menuItems.length === 0) {
+        menuDiv.innerHTML = "<p class='empty'>No items available</p>";
+        return;
+      }
 
-  setTimeout(() => toast.remove(), 1500);
-}
-const tables = JSON.parse(localStorage.getItem("tables")) || [];
-const tableData = tables.find(t => t.tableNo == table);
+      menuItems.forEach((item) => {
+        const finalPrice = getDiscountedPrice(item);
+        const itemCard = document.createElement("div");
+        const nameEl = document.createElement("h3");
+        const priceEl = document.createElement("p");
+        const buttonEl = document.createElement("button");
 
-if (tableData && tableData.active === false) {
-  document.body.innerHTML = `
-    <div style="text-align:center; margin-top:50px;">
-      <h2>🚫 Table Disabled</h2>
-      <p>This table is currently not accepting orders.</p>
-    </div>
-  `;
-}
+        itemCard.className = "item";
+        nameEl.innerText = item.name;
 
-</script>
+        if (Number(item.discount) > 0) {
+          priceEl.innerHTML = `<del>Rs ${formatPrice(item.price)}</del> Rs ${finalPrice}`;
+        } else {
+          priceEl.innerText = "Rs " + finalPrice;
+        }
 
+        buttonEl.innerText = "Add";
+        buttonEl.onclick = () => addToCart(item);
+
+        itemCard.appendChild(nameEl);
+        itemCard.appendChild(priceEl);
+        itemCard.appendChild(buttonEl);
+        menuDiv.appendChild(itemCard);
+      });
+    }
+
+    function showToast(message) {
+      const oldToast = document.querySelector(".toast");
+      if (oldToast) {
+        oldToast.remove();
+      }
+
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.innerText = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 1500);
+    }
+
+    window.addEventListener("storage", (event) => {
+      if (event.key === "menu" || event.key === "tables") {
+        renderMenu();
+      }
+    });
+
+    window.addEventListener("focus", renderMenu);
+
+    renderMenu();
+  </script>
 </body>
 </html>
