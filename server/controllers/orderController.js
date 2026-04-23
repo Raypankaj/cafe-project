@@ -11,7 +11,7 @@ exports.createOrder = async (req, res) => {
     }
 
     const newOrder = await Order.create({
-      table,
+      table: Number(table),
       items,
       total: Number(total),
       status: "new"

@@ -128,6 +128,7 @@
     }
 
     function setWaitingState(message) {
+      clearInterval(timerInterval);
       timerEl.innerText = "Waiting...";
       statusTextEl.innerText = message || "Waiting for confirmation...";
       actionBoxEl.innerHTML = "";
@@ -135,8 +136,8 @@
 
     function setPreparingState(minutes) {
       statusTextEl.innerText = "Preparing your order...";
-      startTimer(minutes);
       actionBoxEl.innerHTML = "";
+      startTimer(minutes);
     }
 
     function setReadyState() {
@@ -150,8 +151,6 @@
 
     function setCollectedState() {
       clearInterval(timerInterval);
-      timerEl.innerText = "Collected";
-      statusTextEl.innerText = "Complete your payment below.";
       showPayment();
     }
 
@@ -168,6 +167,7 @@
       timerInterval = setInterval(() => {
         const min = Math.floor(time / 60);
         const sec = time % 60;
+
         timerEl.innerText = `${min}:${String(sec).padStart(2, "0")}`;
         time--;
 
@@ -183,6 +183,13 @@
 
       try {
         const response = await fetch(`${BASE_URL}/api/orders/${encodeURIComponent(orderId)}`);
+
+        if (response.status === 404) {
+          timerEl.innerText = "Order Not Found";
+          statusTextEl.innerText = "This order does not exist on the server.";
+          actionBoxEl.innerHTML = "";
+          return;
+        }
 
         if (!response.ok) {
           setWaitingState("Waiting for confirmation...");
@@ -223,6 +230,12 @@
 
       setWaitingState("Waiting for confirmation...");
     }
+
+    socket.on("connect", () => {
+      if (orderId) {
+        loadOrderStatus();
+      }
+    });
 
     socket.on("orderAccepted", (data) => {
       if (String(data.id) === String(orderId)) {

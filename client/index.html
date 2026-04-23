@@ -135,6 +135,12 @@
     }
 
     function validateTableAccess() {
+      if (!table || Number(table) < 1) {
+        tableStatusEl.innerText = "Invalid table number.";
+        menuBtn.disabled = true;
+        return false;
+      }
+
       const tableConfig = getTableConfig();
 
       if (tableConfig && tableConfig.active === false) {
@@ -155,6 +161,8 @@
 
       window.location.href = `menu.html?table=${encodeURIComponent(table)}`;
     }
+
+    window.addEventListener("focus", validateTableAccess);
 
     validateTableAccess();
   </script>

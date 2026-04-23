@@ -1,6 +1,6 @@
 const params = new URLSearchParams(window.location.search);
 const table = params.get("table") || "1";
-const cartKey = `cart_table_${table}`;
+const cartKey = "cart";
 
 function getCart() {
   return JSON.parse(localStorage.getItem(cartKey)) || [];
@@ -15,7 +15,11 @@ function addToCart(name, price) {
   if (existingItem) {
     existingItem.qty = (existingItem.qty || 1) + 1;
   } else {
-    cart.push({ name, price: numericPrice, qty: 1 });
+    cart.push({
+      name,
+      price: numericPrice,
+      qty: 1
+    });
   }
 
   localStorage.setItem(cartKey, JSON.stringify(cart));

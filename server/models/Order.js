@@ -15,30 +15,33 @@ const itemSchema = new mongoose.Schema({
   }
 });
 
-const orderSchema = new mongoose.Schema({
-  table: {
-    type: Number,
-    required: true
+const orderSchema = new mongoose.Schema(
+  {
+    table: {
+      type: Number,
+      required: true
+    },
+    items: {
+      type: [itemSchema],
+      required: true
+    },
+    total: {
+      type: Number,
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ["new", "accepted", "done", "collected"],
+      default: "new"
+    },
+    time: {
+      type: Number,
+      default: null
+    }
   },
-  items: {
-    type: [itemSchema],
-    required: true
-  },
-  total: {
-    type: Number,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ["new", "accepted", "done", "collected"],
-    default: "new"
-  },
-  time: {
-    type: Number,
-    default: null
+  {
+    timestamps: true
   }
-}, {
-  timestamps: true
-});
+);
 
 module.exports = mongoose.model("Order", orderSchema);

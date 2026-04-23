@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orders Dashboard</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
@@ -11,15 +12,15 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
+      font-family: "Poppins", sans-serif;
     }
 
     body {
+      min-height: 100vh;
       background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
       color: white;
     }
 
-    /* Header */
     .header {
       text-align: center;
       padding: 20px;
@@ -29,7 +30,6 @@
       font-size: 26px;
     }
 
-    /* Orders container */
     #orders {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -37,7 +37,6 @@
       padding: 20px;
     }
 
-    /* Order Card */
     .order-card {
       background: rgba(255,255,255,0.08);
       backdrop-filter: blur(12px);
@@ -58,22 +57,9 @@
     .order-card p {
       font-size: 14px;
       opacity: 0.8;
+      margin-bottom: 6px;
     }
 
-    /* Status colors */
-    .new {
-      color: #ffd166;
-    }
-
-    .accepted {
-      color: #06d6a0;
-    }
-
-    .done {
-      color: #00b4d8;
-    }
-
-    /* Buttons */
     .order-card button {
       margin-top: 10px;
       margin-right: 5px;
@@ -89,7 +75,6 @@
       opacity: 0.9;
     }
 
-    /* Back button */
     .back-btn {
       margin: 10px 20px;
       display: inline-block;
@@ -97,30 +82,20 @@
       font-size: 14px;
       opacity: 0.8;
     }
-
   </style>
 </head>
 
 <body>
-
-  <!-- Header -->
   <div class="header">
-    <h1>📦 Live Orders</h1>
+    <h1>Live Orders</h1>
   </div>
 
-  <!-- Back -->
-  <div class="back-btn" onclick="goBack()">⬅ Back</div>
+  <div class="back-btn" onclick="goBack()">Back</div>
 
-  <!-- Orders -->
   <div id="orders"></div>
 
-  <!-- 🔥 Socket CDN -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-
-  <!-- 🔌 Socket -->
   <script src="js/socket.js"></script>
-
-  <!-- 🧠 Admin -->
   <script src="js/admin.js"></script>
 
   <script>
@@ -128,6 +103,5 @@
       window.location.href = "index.html";
     }
   </script>
-
 </body>
 </html>

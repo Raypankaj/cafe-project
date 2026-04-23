@@ -115,7 +115,7 @@ button {
 </div>
 
 <script>
-const BASE_URL = "https://brew-haven-backend-pgyl.onrender.com";;
+const BASE_URL = "https://brew-haven-backend-pgyl.onrender.com";
 
 let globalData = [];
 let chartInstance = null;
@@ -260,10 +260,8 @@ async function loadAnalytics() {
       tableMap[order.table] = (tableMap[order.table] || 0) + total;
 
       (order.items || []).forEach((item) => {
-        if (!item || !item.name) {
-          return;
-        }
-        itemMap[item.name] = (itemMap[item.name] || 0) + 1;
+        if (!item || !item.name) return;
+        itemMap[item.name] = (itemMap[item.name] || 0) + (Number(item.qty) || 1);
       });
 
       const hour = date.getHours();
@@ -293,6 +291,7 @@ async function loadAnalytics() {
     renderChart(dailyMap);
   } catch (err) {
     console.error("Analytics Error:", err);
+    document.getElementById("tableData").innerHTML = "<p class='empty'>Failed to load analytics</p>";
     alert("Failed to load analytics. Check backend.");
   }
 }

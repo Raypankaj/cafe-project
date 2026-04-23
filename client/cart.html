@@ -118,7 +118,8 @@
   </div>
 
   <script>
-    const ORDER_API_URL = "https://brew-haven-backend-pgyl.onrender.com/api/orders";
+    const BASE_URL = "https://brew-haven-backend-pgyl.onrender.com";
+    const ORDER_API_URL = `${BASE_URL}/api/orders`;
     const CART_KEY = "cart";
 
     const params = new URLSearchParams(window.location.search);
@@ -180,9 +181,7 @@
     function removeItem(index) {
       cart = getCart();
 
-      if (!cart[index]) {
-        return;
-      }
+      if (!cart[index]) return;
 
       if ((Number(cart[index].qty) || 1) > 1) {
         cart[index].qty = (Number(cart[index].qty) || 1) - 1;
@@ -250,14 +249,19 @@
         localStorage.removeItem(CART_KEY);
         window.location.href = `order.html?id=${data._id}`;
       } catch (error) {
-        alert(error.message || "Error placing order");
         console.log(error);
+        alert(error.message || "Error placing order");
         orderBtn.innerText = "Place Order";
         orderBtn.disabled = false;
       }
     }
 
     window.addEventListener("focus", renderCart);
+    window.addEventListener("storage", (event) => {
+      if (event.key === CART_KEY) {
+        renderCart();
+      }
+    });
 
     renderCart();
   </script>

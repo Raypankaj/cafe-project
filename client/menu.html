@@ -82,6 +82,11 @@
       cursor: pointer;
     }
 
+    .cart-btn button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
     .toast {
       position: fixed;
       bottom: 88px;
@@ -155,6 +160,11 @@
     }
 
     function goToCart() {
+      if (!table || Number(table) < 1) {
+        showToast("Invalid table");
+        return;
+      }
+
       if (isTableDisabled()) {
         showBlockedState();
         return;
@@ -164,6 +174,11 @@
     }
 
     function addToCart(item) {
+      if (!table || Number(table) < 1) {
+        showToast("Invalid table");
+        return;
+      }
+
       if (isTableDisabled()) {
         showBlockedState();
         return;
@@ -179,7 +194,7 @@
       } else {
         cart.push({
           name: item.name,
-          price: price,
+          price,
           qty: 1
         });
       }
@@ -200,6 +215,12 @@
 
     function renderMenu() {
       const menuItems = getMenuItems();
+
+      if (!table || Number(table) < 1) {
+        menuDiv.innerHTML = "<p class='empty'>Invalid table number</p>";
+        cartBtn.disabled = true;
+        return;
+      }
 
       if (isTableDisabled()) {
         showBlockedState();
@@ -257,7 +278,7 @@
     }
 
     window.addEventListener("storage", (event) => {
-      if (event.key === "menu" || event.key === "tables") {
+      if (event.key === "menu" || event.key === "tables" || event.key === cartKey) {
         renderMenu();
       }
     });

@@ -12,12 +12,13 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
+      font-family: "Poppins", sans-serif;
     }
 
     body {
       background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
       color: #fff;
+      min-height: 100vh;
     }
 
     .header {
@@ -93,32 +94,29 @@
 </head>
 
 <body>
-
   <div class="header">
-    <h1>☕ Cafe Admin Panel</h1>
+    <h1>Cafe Admin Panel</h1>
     <p>Manage orders like a pro</p>
   </div>
 
   <div class="dashboard">
-
     <div class="card">
-      <h2>📦 Orders</h2>
+      <h2>Orders</h2>
       <p>View & manage live orders</p>
       <button onclick="goToOrders()">Open Orders</button>
     </div>
 
     <div class="card">
-      <h2>📊 Analytics</h2>
+      <h2>Analytics</h2>
       <p>Track your cafe performance</p>
       <button onclick="goToAnalytics()">Open Analytics</button>
     </div>
 
     <div class="card">
-      <h2>⚙️ Settings</h2>
+      <h2>Settings</h2>
       <p>Manage menu & cafe info</p>
       <button onclick="goToSettings()">Open Settings</button>
     </div>
-
   </div>
 
   <script>
@@ -134,6 +132,5 @@
       window.location.href = "settings.html";
     }
   </script>
-
 </body>
 </html>
