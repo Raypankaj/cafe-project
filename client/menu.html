@@ -3,83 +3,306 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Menu</title>
+  <title>Brew Haven Menu</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --bg: #f3e7d6;
+      --paper: #fbf3e8;
+      --paper-soft: #fff8ef;
+      --wood: #5b3825;
+      --wood-dark: #351d13;
+      --coffee: #7b4b2a;
+      --coffee-deep: #4b2c1d;
+      --accent: #d47a2a;
+      --accent-dark: #a35315;
+      --text: #2f2018;
+      --muted: #6f5748;
+      --line: rgba(91, 56, 37, 0.16);
+      --shadow: 0 18px 40px rgba(52, 27, 16, 0.14);
+    }
+
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
       min-height: 100vh;
-      background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
-      color: white;
-      padding: 15px 15px 90px;
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.3), transparent 30%),
+        linear-gradient(180deg, #f5ebdd, #ead9c4);
+      color: var(--text);
       font-family: "Poppins", sans-serif;
+      padding-bottom: 110px;
     }
 
-    .header {
-      text-align: center;
-      margin-bottom: 20px;
+    img {
+      display: block;
+      width: 100%;
     }
 
-    .header h1 {
-      margin-bottom: 8px;
+    .topbar {
+      background:
+        linear-gradient(rgba(50, 28, 18, 0.35), rgba(50, 28, 18, 0.35)),
+        linear-gradient(180deg, #6b422b, #4b2c1d);
+      color: #fff8ef;
+      border-bottom: 2px dashed rgba(255, 240, 220, 0.28);
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
 
-    .menu {
+    .topbar-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .brand-mark {
+      font-size: 2rem;
+    }
+
+    .top-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .table-pill,
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 248, 238, 0.12);
+      color: #fffaf2;
+      border: 1px solid rgba(255, 239, 219, 0.22);
+      backdrop-filter: blur(6px);
+      font-size: 0.95rem;
+    }
+
+    .page-shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      border-left: 1px solid rgba(91, 56, 37, 0.1);
+      border-right: 1px solid rgba(91, 56, 37, 0.1);
+    }
+
+    .hero {
+      position: relative;
+      min-height: 310px;
+      padding: 56px 42px 44px;
+      border-bottom: 2px dashed rgba(91, 56, 37, 0.18);
+      background:
+        linear-gradient(90deg, rgba(53, 29, 19, 0.72) 0%, rgba(53, 29, 19, 0.45) 42%, rgba(53, 29, 19, 0.16) 100%),
+        url("https://placehold.co/1600x720/8b5e3c/f8f1e5?text=Brew+Haven+Menu");
+      background-size: cover;
+      background-position: center;
+      color: #fffaf3;
+      overflow: hidden;
+    }
+
+    .hero-copy {
+      max-width: 520px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      color: rgba(255, 241, 223, 0.82);
+      font-size: 0.92rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before,
+    .eyebrow::after {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: rgba(255, 241, 223, 0.55);
+    }
+
+    .hero h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(2.8rem, 5vw, 4.6rem);
+      line-height: 0.95;
+      margin-bottom: 14px;
+    }
+
+    .hero p {
+      max-width: 470px;
+      color: rgba(255, 248, 239, 0.88);
+      line-height: 1.75;
+    }
+
+    .section {
+      padding: 46px 38px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      justify-content: center;
+      margin-bottom: 28px;
+      color: var(--coffee-deep);
+    }
+
+    .section-heading::before,
+    .section-heading::after {
+      content: "";
+      flex: 1;
+      max-width: 240px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91, 56, 37, 0.28), transparent);
+    }
+
+    .section-heading h2 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .menu-category {
+      background: var(--paper-soft);
+      border: 1px solid rgba(91, 56, 37, 0.12);
+      box-shadow: 0 16px 34px rgba(64, 33, 20, 0.08);
+      overflow: hidden;
+    }
+
+    .menu-category-title {
+      padding: 18px 20px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      color: var(--coffee-deep);
+      border-bottom: 1px dashed rgba(91, 56, 37, 0.16);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.12));
     }
 
     .item {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(12px);
-      padding: 15px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+      border-top: 1px solid rgba(91, 56, 37, 0.08);
+    }
+
+    .item img {
+      aspect-ratio: 1.15 / 0.86;
+      object-fit: cover;
+    }
+
+    .item-content {
+      padding: 18px 18px 20px;
+    }
+
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 8px;
     }
 
     .item h3 {
-      margin-bottom: 8px;
-      font-size: 18px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--coffee-deep);
+      line-height: 0.95;
+    }
+
+    .price {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--coffee);
+      white-space: nowrap;
+    }
+
+    .price del {
+      margin-right: 6px;
+      color: rgba(111, 87, 72, 0.85);
+      font-size: 0.95rem;
+      font-weight: 500;
     }
 
     .item p {
-      margin-bottom: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 14px;
+      min-height: 48px;
     }
 
     .item button {
-      padding: 8px 12px;
+      width: 100%;
       border: none;
-      border-radius: 8px;
-      background: linear-gradient(45deg, #ff7b54, #ff4d6d);
-      color: white;
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: linear-gradient(180deg, #e68d39, #bf5e1a);
+      color: #fff;
+      font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 10px 18px rgba(63, 27, 3, 0.14);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .item button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 24px rgba(63, 27, 3, 0.18);
     }
 
     .cart-btn {
       position: fixed;
-      bottom: 20px;
       left: 50%;
+      bottom: 18px;
       transform: translateX(-50%);
-      width: min(420px, calc(100% - 30px));
+      width: min(760px, calc(100% - 24px));
+      z-index: 30;
     }
 
     .cart-btn button {
       width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      background: linear-gradient(45deg, #ff7b54, #ff4d6d);
       border: none;
-      color: white;
-      font-size: 16px;
+      border-radius: 18px;
+      padding: 16px 20px;
+      background: linear-gradient(180deg, #7a4a2d, #56311f);
+      color: #fff4e7;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 18px 34px rgba(53, 29, 19, 0.22);
+      border: 1px solid rgba(255, 223, 181, 0.14);
     }
 
     .cart-btn button:disabled {
@@ -89,32 +312,113 @@
 
     .toast {
       position: fixed;
-      bottom: 88px;
       left: 50%;
+      bottom: 94px;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.85);
-      padding: 10px 14px;
-      border-radius: 8px;
-      z-index: 10;
-      white-space: nowrap;
+      background: rgba(53, 29, 19, 0.94);
+      color: #fff7ee;
+      padding: 11px 16px;
+      border-radius: 999px;
+      z-index: 50;
+      box-shadow: 0 10px 22px rgba(53, 29, 19, 0.24);
     }
 
     .empty,
     .blocked {
       text-align: center;
-      margin-top: 50px;
-      opacity: 0.9;
+      margin-top: 40px;
+      padding: 48px 20px;
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px dashed rgba(91, 56, 37, 0.2);
+      color: var(--muted);
+    }
+
+    .blocked h2 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 2.4rem;
+      color: var(--coffee-deep);
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 980px) {
+      .topbar-inner,
+      .hero,
+      .section {
+        padding-left: 22px;
+        padding-right: 22px;
+      }
+
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar-inner {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .top-info {
+        justify-content: center;
+      }
+
+      .section-heading {
+        gap: 10px;
+      }
+
+      .section-heading::before,
+      .section-heading::after {
+        max-width: 80px;
+      }
+
+      .section-heading h2 {
+        white-space: normal;
+        text-align: center;
+      }
+
+      .hero {
+        min-height: auto;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="header">
-    <h1>Brew Haven Menu</h1>
-    <p id="tableInfo"></p>
-  </div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark">☕</span>
+        <span>Brew Haven</span>
+      </div>
 
-  <div class="menu" id="menu"></div>
+      <div class="top-info">
+        <div class="table-pill">Table <strong id="tableInfo">#1</strong></div>
+        <div class="status-pill" id="tableStatus">Ready for ordering</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Freshly Crafted</span>
+        <h1>Choose Your Favorite<br>Cafe Treats</h1>
+        <p>
+          Smooth coffee, buttery bakes and comfort plates made for your table.
+          Add items to your cart and place the order in a few taps.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <h2>Our Menu</h2>
+      </div>
+
+      <div class="menu-grid" id="menu"></div>
+    </section>
+  </main>
 
   <div class="cart-btn">
     <button id="cartBtn" onclick="goToCart()">Go to Cart</button>
@@ -126,10 +430,18 @@
     const cartKey = "cart";
 
     const tableInfo = document.getElementById("tableInfo");
+    const tableStatus = document.getElementById("tableStatus");
     const menuDiv = document.getElementById("menu");
     const cartBtn = document.getElementById("cartBtn");
 
-    tableInfo.innerText = "Table #" + table;
+    tableInfo.innerText = "#" + table;
+
+    const categoryImages = {
+      beverage: "https://placehold.co/720x520/9b6a47/fff5ea?text=Coffee",
+      dessert: "https://placehold.co/720x520/8f5a47/fff2ea?text=Dessert",
+      snack: "https://placehold.co/720x520/9a6a42/fff3e7?text=Snack",
+      default: "https://placehold.co/720x520/8d6243/fff2e4?text=Brew+Haven"
+    };
 
     function getMenuItems() {
       return JSON.parse(localStorage.getItem("menu")) || [];
@@ -157,6 +469,46 @@
       const discount = Number(item.discount) || 0;
       const finalPrice = basePrice - (basePrice * discount / 100);
       return formatPrice(finalPrice);
+    }
+
+    function detectCategory(name) {
+      const value = String(name || "").toLowerCase();
+
+      if (value.includes("coffee") || value.includes("latte") || value.includes("cappuccino") || value.includes("brew") || value.includes("tea")) {
+        return "beverage";
+      }
+
+      if (value.includes("cake") || value.includes("muffin") || value.includes("cookie") || value.includes("dessert") || value.includes("brownie")) {
+        return "dessert";
+      }
+
+      if (value.includes("pasta") || value.includes("croissant") || value.includes("sandwich") || value.includes("burger") || value.includes("snack")) {
+        return "snack";
+      }
+
+      return "default";
+    }
+
+    function getCategoryTitle(category) {
+      if (category === "beverage") return "Coffee & Beverages";
+      if (category === "dessert") return "Bakery & Desserts";
+      if (category === "snack") return "Snacks & Meals";
+      return "Chef Picks";
+    }
+
+    function groupMenuItems(items) {
+      const groups = {
+        beverage: [],
+        dessert: [],
+        snack: [],
+        default: []
+      };
+
+      items.forEach((item) => {
+        groups[detectCategory(item.name)].push(item);
+      });
+
+      return Object.entries(groups).filter(([, value]) => value.length > 0);
     }
 
     function goToCart() {
@@ -210,6 +562,7 @@
           <p>This table is currently not accepting orders.</p>
         </div>
       `;
+      tableStatus.innerText = "Ordering unavailable";
       cartBtn.disabled = true;
     }
 
@@ -218,6 +571,7 @@
 
       if (!table || Number(table) < 1) {
         menuDiv.innerHTML = "<p class='empty'>Invalid table number</p>";
+        tableStatus.innerText = "Invalid table";
         cartBtn.disabled = true;
         return;
       }
@@ -227,6 +581,7 @@
         return;
       }
 
+      tableStatus.innerText = `Table #${table} is ready for ordering`;
       cartBtn.disabled = false;
       menuDiv.innerHTML = "";
 
@@ -235,29 +590,46 @@
         return;
       }
 
-      menuItems.forEach((item) => {
-        const finalPrice = getDiscountedPrice(item);
-        const itemCard = document.createElement("div");
-        const nameEl = document.createElement("h3");
-        const priceEl = document.createElement("p");
-        const buttonEl = document.createElement("button");
+      const groupedItems = groupMenuItems(menuItems);
 
-        itemCard.className = "item";
-        nameEl.innerText = item.name;
+      groupedItems.forEach(([category, items]) => {
+        const categoryDiv = document.createElement("section");
+        categoryDiv.className = "menu-category";
 
-        if (Number(item.discount) > 0) {
-          priceEl.innerHTML = `<del>Rs ${formatPrice(item.price)}</del> Rs ${finalPrice}`;
-        } else {
-          priceEl.innerText = "Rs " + finalPrice;
-        }
+        categoryDiv.innerHTML = `
+          <div class="menu-category-title">${getCategoryTitle(category)}</div>
+        `;
 
-        buttonEl.innerText = "Add";
-        buttonEl.onclick = () => addToCart(item);
+        items.forEach((item) => {
+          const finalPrice = getDiscountedPrice(item);
+          const itemCard = document.createElement("article");
+          const content = document.createElement("div");
+          const buttonEl = document.createElement("button");
+          const imageSrc = item.image || categoryImages[category] || categoryImages.default;
 
-        itemCard.appendChild(nameEl);
-        itemCard.appendChild(priceEl);
-        itemCard.appendChild(buttonEl);
-        menuDiv.appendChild(itemCard);
+          itemCard.className = "item";
+          content.className = "item-content";
+
+          content.innerHTML = `
+            <div class="item-head">
+              <h3>${item.name}</h3>
+              <div class="price">
+                ${Number(item.discount) > 0 ? `<del>Rs ${formatPrice(item.price)}</del> Rs ${finalPrice}` : `Rs ${finalPrice}`}
+              </div>
+            </div>
+            <p>${item.description || "Freshly prepared at Brew Haven with cafe-style warmth and flavor."}</p>
+          `;
+
+          buttonEl.innerText = "Add to Cart";
+          buttonEl.onclick = () => addToCart(item);
+
+          itemCard.innerHTML = `<img src="${imageSrc}" alt="${item.name}">`;
+          content.appendChild(buttonEl);
+          itemCard.appendChild(content);
+          categoryDiv.appendChild(itemCard);
+        });
+
+        menuDiv.appendChild(categoryDiv);
       });
     }
 
